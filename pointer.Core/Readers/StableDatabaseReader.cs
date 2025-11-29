@@ -2,9 +2,9 @@ namespace pointer.Core.Readers;
 
 using pointer.Core.Models;
 
-public class StableDatabaseReader(string databasePath)
+public class StableDatabaseReader(string path)
 {
-    private readonly string databasePath = databasePath;
+    private readonly string databasePath = Path.Combine(path, "osu!.db");
 
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
