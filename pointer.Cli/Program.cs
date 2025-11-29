@@ -17,7 +17,7 @@ var manager = new ConversionManager(
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: pointer [--beatmaps] [--collections] [--skins]");
+    Console.WriteLine("Usage: pointer [--beatmaps] [--collections] [--skins] [--scores]");
     return;
 }
 
@@ -36,11 +36,10 @@ if (args.Contains("--skins"))
     manager.ConvertSkins();
 }
 
-// TODO: implement database writing
-// if (args.Contains("--scores"))
-// {
-//     manager.ConvertScores();
-// }
+if (args.Contains("--scores"))
+{
+    manager.ConvertScores();
+}
 
 static string GetDefaultLazerPath()
 {

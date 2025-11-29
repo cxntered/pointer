@@ -1,5 +1,6 @@
 namespace pointer.Core.Readers;
 
+using System.Text.Json;
 using pointer.Core.Models;
 using Pointer.Core.Models;
 using Realms;
@@ -100,15 +101,60 @@ public class LazerDatabaseReader(string path)
 
         foreach (var score in scores)
         {
-            yield return new Score(
-                BeatmapHash: score.DynamicApi.Get<string>("BeatmapHash"),
-                Date: score.DynamicApi.Get<DateTimeOffset>("Date"),
-                Files: [.. score.DynamicApi.GetList<IRealmObjectBase>("Files")
+            var mods = score.DynamicApi.Get<string>("Mods");
+            var files = score.DynamicApi.GetList<IRealmObjectBase>("Files")
                 .Select(file => new File(
                     Filename: file.DynamicApi.Get<string>("Filename"),
                     Hash: file.DynamicApi.Get<IRealmObjectBase>("File").DynamicApi.Get<string>("Hash")
-                ))]
+                ))
+                .ToList();
+
+            var beatmapInfo = score.DynamicApi.Get<IRealmObjectBase?>("BeatmapInfo");
+            if (beatmapInfo == null) continue;
+
+            string md5Hash = string.Empty;
+            var replayFile = files.FirstOrDefault()!;
+            string replayPath = Path.Combine(path, "files", replayFile.Hash[..1], replayFile.Hash[..2], replayFile.Hash);
+            md5Hash = ReadReplayMD5Hash(replayPath) ?? score.DynamicApi.Get<string>("Hash");
+
+            yield return new Score(
+                BeatmapMD5Hash: beatmapInfo.DynamicApi.Get<string>("MD5Hash"),
+                Ruleset: new Ruleset(
+                    Name: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<string>("Name"),
+                    ID: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<int>("OnlineID"),
+                    ShortName: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<string>("ShortName")
+                ),
+                User: new User(
+                    Username: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<string>("Username"),
+                    ID: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<int>("OnlineID"),
+                    Country: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<string>("CountryCode")
+                ),
+                MD5Hash: md5Hash,
+                Date: score.DynamicApi.Get<DateTimeOffset>("Date"),
+                TotalScore: score.DynamicApi.Get<int>("TotalScore"),
+                MaxCombo: score.DynamicApi.Get<int>("MaxCombo"),
+                Statistics: JsonSerializer.Deserialize<Statistics>(score.DynamicApi.Get<string>("Statistics"))!,
+                MaximumStatistics: JsonSerializer.Deserialize<Statistics>(score.DynamicApi.Get<string>("MaximumStatistics"))!,
+                Mods: !string.IsNullOrWhiteSpace(mods) ? JsonSerializer.Deserialize<List<Mod>>(mods)! : [],
+                ID: score.DynamicApi.Get<int>("OnlineID"),
+                IsLegacyScore: score.DynamicApi.Get<bool>("IsLegacyScore"),
+                Files: files
             );
         }
+    }
+
+    private static string? ReadReplayMD5Hash(string replayPath)
+    {
+        if (!System.IO.File.Exists(replayPath))
+            return null;
+
+        using var stream = System.IO.File.OpenRead(replayPath);
+        using var reader = new BinaryReader(stream);
+
+        reader.ReadByte(); // ruleset
+        reader.ReadInt32(); // version
+        StableDatabaseReader.ReadString(reader); // beatmap hash
+        StableDatabaseReader.ReadString(reader); // player name
+        return StableDatabaseReader.ReadString(reader); // replay hash
     }
 }

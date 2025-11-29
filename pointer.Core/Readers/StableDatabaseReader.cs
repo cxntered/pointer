@@ -6,6 +6,7 @@ public class StableDatabaseReader(string path)
 {
     private readonly string osuDbPath = Path.Combine(path, "osu!.db");
     private readonly string collectionDbPath = Path.Combine(path, "collection.db");
+    private readonly string scoresDbPath = Path.Combine(path, "scores.db");
 
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
@@ -145,7 +146,85 @@ public class StableDatabaseReader(string path)
         }
     }
 
-    private static string ReadString(BinaryReader r)
+    public Dictionary<string, List<StableScore>> GetScores()
+    {
+        if (!System.IO.File.Exists(scoresDbPath))
+            return new Dictionary<string, List<StableScore>>();
+
+        using var stream = System.IO.File.OpenRead(scoresDbPath);
+        using var reader = new BinaryReader(stream);
+
+        int version = reader.ReadInt32();
+        int beatmapCount = reader.ReadInt32();
+        var scores = new Dictionary<string, List<StableScore>>();
+
+        for (int i = 0; i < beatmapCount; i++)
+        {
+            string beatmapHash = ReadString(reader);
+            int scoreCount = reader.ReadInt32();
+            var beatmapScores = new List<StableScore>();
+
+            for (int j = 0; j < scoreCount; j++)
+            {
+                byte gameMode = reader.ReadByte();
+                int scoreVersion = reader.ReadInt32();
+                string beatmapHashRead = ReadString(reader);
+                string playerName = ReadString(reader);
+                string replayHash = ReadString(reader);
+                short count300 = reader.ReadInt16();
+                short count100 = reader.ReadInt16();
+                short count50 = reader.ReadInt16();
+                short countGeki = reader.ReadInt16();
+                short countKatu = reader.ReadInt16();
+                short countMiss = reader.ReadInt16();
+                int replayScore = reader.ReadInt32();
+                short maxCombo = reader.ReadInt16();
+                bool perfectCombo = reader.ReadBoolean();
+                int mods = reader.ReadInt32();
+                string emptyString = ReadString(reader);
+                long timestamp = reader.ReadInt64();
+                int negativeOne = reader.ReadInt32();
+                long onlineScoreId = reader.ReadInt64();
+
+                double? additionalModInfo = null;
+                if ((mods & (int)BitwiseMods.AT) != 0)
+                {
+                    additionalModInfo = reader.ReadDouble();
+                }
+
+                var score = new StableScore(
+                    gameMode,
+                    scoreVersion,
+                    beatmapHashRead,
+                    playerName,
+                    replayHash,
+                    count300,
+                    count100,
+                    count50,
+                    countGeki,
+                    countKatu,
+                    countMiss,
+                    replayScore,
+                    maxCombo,
+                    perfectCombo,
+                    mods,
+                    emptyString,
+                    timestamp,
+                    negativeOne,
+                    onlineScoreId,
+                    additionalModInfo
+                );
+
+                beatmapScores.Add(score);
+            }
+
+            scores[beatmapHash] = beatmapScores;
+        }
+
+        return scores;
+    }
+
+    internal static string ReadString(BinaryReader r)
     {
         byte indicator = r.ReadByte();
         if (indicator == 0x00) return string.Empty;
