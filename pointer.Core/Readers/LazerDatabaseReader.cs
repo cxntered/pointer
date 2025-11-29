@@ -50,6 +50,7 @@ public class LazerDatabaseReader(string path)
                 Title: metadata?.DynamicApi.Get<string>("Title") ?? string.Empty,
                 Artist: metadata?.DynamicApi.Get<string>("Artist") ?? string.Empty,
                 Creator: metadata?.DynamicApi.Get<IRealmObjectBase>("Author")?.DynamicApi.Get<string>("Username") ?? string.Empty,
+                Protected: beatmapSet.DynamicApi.Get<bool>("Protected"),
                 Beatmaps: beatmaps,
                 Files: files
             );

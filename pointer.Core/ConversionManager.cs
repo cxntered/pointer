@@ -2,10 +2,12 @@ namespace pointer.Core;
 
 using pointer.Core.Readers;
 
-public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable)
+public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerFilesPath, string stableSongsPath)
 {
     private readonly LazerDatabaseReader lazer = lazer;
     private readonly StableDatabaseReader stable = stable;
+    private readonly string lazerFilesPath = lazerFilesPath;
+    private readonly string stableSongsPath = stableSongsPath;
 
     public void Convert()
     {
@@ -15,20 +17,37 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 
         foreach (var beatmapSet in lazer.GetBeatmapSets())
         {
+            // skip protected beatmap sets (intro sequences)
+            if (beatmapSet.Protected) continue;
+
             var toConvert = beatmapSet.Beatmaps
                 .Where(b => !stableHashes.Contains(b.Hash))
                 .ToList();
-
-            if (toConvert.Count == 0)
-                continue;
-
-            // TODO: implement hard linking/copying
+            if (toConvert.Count == 0) continue;
 
             Console.WriteLine($"Converting BeatmapSet: {beatmapSet.Artist} - {beatmapSet.Title} ({beatmapSet.Creator}) [{beatmapSet.OnlineID}]");
-            foreach (var beatmap in toConvert)
+
+            string beatmapId = beatmapSet.OnlineID > 0 ? $"{beatmapSet.OnlineID} " : "";
+            string folderName = SanitizePath($"{beatmapId}{beatmapSet.Artist} - {beatmapSet.Title}");
+
+            foreach (var file in beatmapSet.Files)
             {
-                Console.WriteLine($" - {beatmap.Artist} - {beatmap.Title} [{beatmap.Difficulty}]");
+                string sourceFile = Path.Combine(lazerFilesPath, file.Hash[..1], file.Hash[..2], file.Hash);
+                string destFile = Path.Combine(stableSongsPath, folderName, file.Filename);
+                FileLinker.LinkOrCopy(sourceFile, destFile);
             }
         }
+    }
+
+    private static string SanitizePath(string path)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        foreach (var c in invalidChars)
+        {
+            path = path.Replace(c, '_');
+        }
+        path = path.Replace(".", "");
+
+        return path;
     }
 }

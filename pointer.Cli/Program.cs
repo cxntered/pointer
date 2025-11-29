@@ -1,11 +1,35 @@
 ﻿using pointer.Core;
 using pointer.Core.Readers;
 
-var lazerReader = new LazerDatabaseReader(GetDefaultLazerPath());
-var stableReader = new StableDatabaseReader(GetDefaultStablePath());
+string lazerPath = GetDefaultLazerPath();
+string stablePath = GetDefaultStablePath();
 
-var manager = new ConversionManager(lazerReader, stableReader);
+var lazerReader = new LazerDatabaseReader(lazerPath);
+var stableReader = new StableDatabaseReader(stablePath);
+
+var manager = new ConversionManager(
+    lazerReader,
+    stableReader,
+    Path.Combine(lazerPath, "files"),
+    GetStableSongsPath(stablePath)
+);
 manager.Convert();
+
+static string GetDefaultLazerPath()
+{
+    string basePath;
+    if (OperatingSystem.IsWindows())
+    {
+        // %AppData%\osu
+        basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+    }
+    else
+    {
+        // ~/Library/Application Support/osu or ~/.local/share/osu
+        basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+    }
+    return Path.Combine(basePath, "osu");
+}
 
 static string GetDefaultStablePath()
 {
@@ -34,18 +58,24 @@ static string GetDefaultStablePath()
     }
 }
 
-static string GetDefaultLazerPath()
+static string GetStableSongsPath(string basePath)
 {
-    string basePath;
-    if (OperatingSystem.IsWindows())
+    string configPath = Path.Combine(basePath, "osu!." + Environment.UserName + ".cfg");
+
+    if (File.Exists(configPath))
     {
-        // %AppData%\osu
-        basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        foreach (var line in File.ReadLines(configPath))
+        {
+            if (line.StartsWith("BeatmapDirectory", StringComparison.OrdinalIgnoreCase))
+            {
+                string? dir = line.Split('=').LastOrDefault()?.Trim();
+                if (Path.IsPathRooted(dir))
+                    return dir;
+                else if (!string.IsNullOrEmpty(dir))
+                    return Path.GetFullPath(Path.Combine(basePath, dir));
+            }
+        }
     }
-    else
-    {
-        // ~/Library/Application Support/osu or ~/.local/share/osu
-        basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    }
-    return Path.Combine(basePath, "osu");
+
+    return Path.Combine(basePath, "Songs");
 }

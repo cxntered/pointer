@@ -7,6 +7,7 @@ public record BeatmapSetInfo(
     string Title,
     string Artist,
     string Creator,
+    bool Protected,
     List<BeatmapInfo> Beatmaps,
     List<BeatmapFileInfo> Files
 );
