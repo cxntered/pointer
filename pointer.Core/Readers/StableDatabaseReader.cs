@@ -4,11 +4,12 @@ using pointer.Core.Models;
 
 public class StableDatabaseReader(string path)
 {
-    private readonly string databasePath = Path.Combine(path, "osu!.db");
+    private readonly string osuDbPath = Path.Combine(path, "osu!.db");
+    private readonly string collectionDbPath = Path.Combine(path, "collection.db");
 
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
-        using var stream = File.OpenRead(databasePath);
+        using var stream = File.OpenRead(osuDbPath);
         using var reader = new BinaryReader(stream);
 
         int version = reader.ReadInt32(); // version
@@ -114,6 +115,32 @@ public class StableDatabaseReader(string path)
                 Artist: artist,
                 Creator: creator,
                 Difficulty: difficulty
+            );
+        }
+    }
+
+    public IEnumerable<BeatmapCollection> GetCollections()
+    {
+        using var stream = File.OpenRead(collectionDbPath);
+        using var reader = new BinaryReader(stream);
+
+        reader.ReadInt32(); // client version
+        int collectionCount = reader.ReadInt32();
+
+        for (int i = 0; i < collectionCount; i++)
+        {
+            string name = ReadString(reader);
+            int beatmapCount = reader.ReadInt32();
+            var hashes = new List<string>(beatmapCount);
+            for (int j = 0; j < beatmapCount; j++)
+            {
+                string hash = ReadString(reader);
+                hashes.Add(hash);
+            }
+
+            yield return new BeatmapCollection(
+                Name: name,
+                Hashes: hashes
             );
         }
     }

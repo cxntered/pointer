@@ -2,14 +2,9 @@ namespace pointer.Core;
 
 using pointer.Core.Readers;
 
-public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerFilesPath, string stableSongsPath)
+public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerPath, string stablePath, string stableSongsPath)
 {
-    private readonly LazerDatabaseReader lazer = lazer;
-    private readonly StableDatabaseReader stable = stable;
-    private readonly string lazerFilesPath = lazerFilesPath;
-    private readonly string stableSongsPath = stableSongsPath;
-
-    public void Convert()
+    public void ConvertBeatmaps()
     {
         var stableHashes = stable.GetBeatmaps()
             .Select(b => b.Hash)
@@ -32,7 +27,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 
             foreach (var file in beatmapSet.Files)
             {
-                string sourceFile = Path.Combine(lazerFilesPath, file.Hash[..1], file.Hash[..2], file.Hash);
+                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
                 string destFile = Path.Combine(stableSongsPath, folderName, file.Filename);
                 try
                 {
@@ -46,6 +41,45 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
     }
 
+    public void ConvertCollections()
+    {
+        var mergedCollections = stable.GetCollections()
+            .Concat(lazer.GetCollections())
+            .GroupBy(c => c.Name)
+            .ToDictionary(
+                g => g.Key,
+                g => new HashSet<string>(g.SelectMany(c => c.Hashes))
+            );
+
+        string collectionDbPath = Path.Combine(stablePath, "collection.db");
+        string backupPath = Path.Combine(stablePath, "collection.db.bak");
+
+        if (File.Exists(collectionDbPath))
+        {
+            File.Copy(collectionDbPath, backupPath, overwrite: true);
+            Console.WriteLine($"Backed up collection.db to collection.db.bak");
+        }
+
+        using var stream = File.Create(collectionDbPath);
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write(20251128); // client version
+        writer.Write(mergedCollections.Count);
+
+        foreach (var (name, hashes) in mergedCollections)
+        {
+            WriteString(writer, name);
+            writer.Write(hashes.Count);
+
+            foreach (var hash in hashes)
+            {
+                WriteString(writer, hash);
+            }
+        }
+
+        Console.WriteLine($"Wrote {mergedCollections.Count} collections to collection.db");
+    }
+
     private static string SanitizePath(string path)
     {
         var invalidChars = Path.GetInvalidFileNameChars();
@@ -56,5 +90,31 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         path = path.Replace(".", "");
 
         return path;
+    }
+
+    private static void WriteString(BinaryWriter w, string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            w.Write((byte)0x00);
+            return;
+        }
+
+        w.Write((byte)0x0B);
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(value);
+        WriteULEB128(w, data.Length);
+        w.Write(data);
+    }
+
+    private static void WriteULEB128(BinaryWriter w, int value)
+    {
+        do
+        {
+            byte b = (byte)(value & 0x7F);
+            value >>= 7;
+            if (value != 0)
+                b |= 0x80;
+            w.Write(b);
+        } while (value != 0);
     }
 }

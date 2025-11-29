@@ -10,10 +10,26 @@ var stableReader = new StableDatabaseReader(stablePath);
 var manager = new ConversionManager(
     lazerReader,
     stableReader,
-    Path.Combine(lazerPath, "files"),
+    lazerPath,
+    stablePath,
     GetStableSongsPath(stablePath)
 );
-manager.Convert();
+
+if (args.Length == 0)
+{
+    Console.WriteLine("Usage: pointer [--beatmaps] [--collections]");
+    return;
+}
+
+if (args.Contains("--beatmaps"))
+{
+    manager.ConvertBeatmaps();
+}
+
+if (args.Contains("--collections"))
+{
+    manager.ConvertCollections();
+}
 
 static string GetDefaultLazerPath()
 {

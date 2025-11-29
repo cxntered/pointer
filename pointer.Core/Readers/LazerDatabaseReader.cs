@@ -57,21 +57,19 @@ public class LazerDatabaseReader(string path)
         }
     }
 
-    public IEnumerable<BeatmapInfo> GetBeatmaps()
+    public IEnumerable<BeatmapCollection> GetCollections()
     {
         using var realm = Realm.GetInstance(config);
-        var beatmaps = realm.DynamicApi.All("Beatmap");
+        var collections = realm.DynamicApi.All("BeatmapCollection");
 
-        foreach (var beatmap in beatmaps)
+        foreach (var collection in collections)
         {
-            var metadata = beatmap.DynamicApi.Get<IRealmObjectBase>("Metadata");
-            yield return new BeatmapInfo(
-                Hash: beatmap.DynamicApi.Get<string>("MD5Hash"),
-                FolderName: null,
-                Title: metadata.DynamicApi.Get<string>("Title"),
-                Artist: metadata.DynamicApi.Get<string>("Artist"),
-                Creator: metadata.DynamicApi.Get<IRealmObjectBase>("Author").DynamicApi.Get<string>("Username"),
-                Difficulty: beatmap.DynamicApi.Get<string>("DifficultyName")
+            var name = collection.DynamicApi.Get<string>("Name");
+            var hashes = collection.DynamicApi.GetList<string>("BeatmapMD5Hashes").ToList();
+
+            yield return new BeatmapCollection(
+                Name: name,
+                Hashes: hashes
             );
         }
     }
