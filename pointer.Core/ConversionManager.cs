@@ -34,7 +34,14 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
             {
                 string sourceFile = Path.Combine(lazerFilesPath, file.Hash[..1], file.Hash[..2], file.Hash);
                 string destFile = Path.Combine(stableSongsPath, folderName, file.Filename);
-                FileLinker.LinkOrCopy(sourceFile, destFile);
+                try
+                {
+                    FileLinker.LinkOrCopy(sourceFile, destFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Error linking/copying file '{file.Filename}': {ex.Message}");
+                }
             }
         }
     }
