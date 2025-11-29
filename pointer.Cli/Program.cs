@@ -36,6 +36,12 @@ if (args.Contains("--skins"))
     manager.ConvertSkins();
 }
 
+// TODO: implement database writing
+// if (args.Contains("--scores"))
+// {
+//     manager.ConvertScores();
+// }
+
 static string GetDefaultLazerPath()
 {
     string basePath;

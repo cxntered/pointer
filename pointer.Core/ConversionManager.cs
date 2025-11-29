@@ -117,6 +117,26 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
     }
 
+    public void ConvertScores()
+    {
+        foreach (var score in lazer.GetScores())
+        {
+            foreach (var file in score.Files)
+            {
+                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
+                string destFile = Path.Combine(stablePath, "Data", "r", $"{score.BeatmapHash}-{score.Date.ToFileTime()}.osr");
+                try
+                {
+                    FileLinker.LinkOrCopy(sourceFile, destFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Error linking/copying file '{file.Filename}': {ex.Message}");
+                }
+            }
+        }
+    }
+
     private static string SanitizePath(string path)
     {
         var invalidChars = Path.GetInvalidFileNameChars();

@@ -92,4 +92,23 @@ public class LazerDatabaseReader(string path)
             );
         }
     }
+
+    public IEnumerable<Score> GetScores()
+    {
+        using var realm = Realm.GetInstance(config);
+        var scores = realm.DynamicApi.All("Score");
+
+        foreach (var score in scores)
+        {
+            yield return new Score(
+                BeatmapHash: score.DynamicApi.Get<string>("BeatmapHash"),
+                Date: score.DynamicApi.Get<DateTimeOffset>("Date"),
+                Files: [.. score.DynamicApi.GetList<IRealmObjectBase>("Files")
+                .Select(file => new File(
+                    Filename: file.DynamicApi.Get<string>("Filename"),
+                    Hash: file.DynamicApi.Get<IRealmObjectBase>("File").DynamicApi.Get<string>("Hash")
+                ))]
+            );
+        }
+    }
 }
