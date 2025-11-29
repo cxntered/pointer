@@ -17,7 +17,7 @@ var manager = new ConversionManager(
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: pointer [--beatmaps] [--collections]");
+    Console.WriteLine("Usage: pointer [--beatmaps] [--collections] [--skins]");
     return;
 }
 
@@ -29,6 +29,11 @@ if (args.Contains("--beatmaps"))
 if (args.Contains("--collections"))
 {
     manager.ConvertCollections();
+}
+
+if (args.Contains("--skins"))
+{
+    manager.ConvertSkins();
 }
 
 static string GetDefaultLazerPath()

@@ -36,7 +36,7 @@ public class LazerDatabaseReader(string path)
                 .ToList();
 
             var files = beatmapSet.DynamicApi.GetList<IRealmObjectBase>("Files")
-                .Select(file => new BeatmapFileInfo(
+                .Select(file => new File(
                     Filename: file.DynamicApi.Get<string>("Filename"),
                     Hash: file.DynamicApi.Get<IRealmObjectBase>("File").DynamicApi.Get<string>("Hash")
                 ))
@@ -70,6 +70,25 @@ public class LazerDatabaseReader(string path)
             yield return new BeatmapCollection(
                 Name: name,
                 Hashes: hashes
+            );
+        }
+    }
+
+    public IEnumerable<Skin> GetSkins()
+    {
+        using var realm = Realm.GetInstance(config);
+        var skins = realm.DynamicApi.All("Skin");
+
+        foreach (var skin in skins)
+        {
+            yield return new Skin(
+                Name: skin.DynamicApi.Get<string>("Name"),
+                InstantiationInfo: skin.DynamicApi.Get<string>("InstantiationInfo"),
+                Files: [.. skin.DynamicApi.GetList<IRealmObjectBase>("Files")
+                .Select(file => new File(
+                    Filename: file.DynamicApi.Get<string>("Filename"),
+                    Hash: file.DynamicApi.Get<IRealmObjectBase>("File").DynamicApi.Get<string>("Hash")
+                ))]
             );
         }
     }

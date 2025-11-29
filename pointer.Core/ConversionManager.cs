@@ -1,5 +1,6 @@
 namespace pointer.Core;
 
+using pointer.Core.Models;
 using pointer.Core.Readers;
 
 public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerPath, string stablePath, string stableSongsPath)
@@ -54,13 +55,13 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         string collectionDbPath = Path.Combine(stablePath, "collection.db");
         string backupPath = Path.Combine(stablePath, "collection.db.bak");
 
-        if (File.Exists(collectionDbPath))
+        if (System.IO.File.Exists(collectionDbPath))
         {
-            File.Copy(collectionDbPath, backupPath, overwrite: true);
+            System.IO.File.Copy(collectionDbPath, backupPath, overwrite: true);
             Console.WriteLine($"Backed up collection.db to collection.db.bak");
         }
 
-        using var stream = File.Create(collectionDbPath);
+        using var stream = System.IO.File.Create(collectionDbPath);
         using var writer = new BinaryWriter(stream);
 
         writer.Write(20251128); // client version
@@ -78,6 +79,42 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
 
         Console.WriteLine($"Wrote {mergedCollections.Count} collections to collection.db");
+    }
+
+    public void ConvertSkins()
+    {
+        var stableSkins = Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
+            .Select(dir => Path.GetFileName(dir))
+            .ToHashSet();
+
+        foreach (var skin in lazer.GetSkins())
+        {
+            if (skin.InstantiationInfo != "osu.Game.Skinning.LegacySkin, osu.Game") continue; // skip non-legacy skins
+
+            string? iniName = GetSkinNameFromIni(skin);
+            string skinName = ExtractSkinName(skin.Name, iniName);
+
+            if (stableSkins.Contains(skinName)) continue;
+
+            Console.WriteLine($"Converting Skin: {skinName}");
+
+            string skinDir = Path.Combine(stablePath, "Skins", skinName);
+            Directory.CreateDirectory(skinDir);
+
+            foreach (var file in skin.Files)
+            {
+                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
+                string destFile = Path.Combine(skinDir, file.Filename);
+                try
+                {
+                    FileLinker.LinkOrCopy(sourceFile, destFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Error linking/copying file '{file.Filename}': {ex.Message}");
+                }
+            }
+        }
     }
 
     private static string SanitizePath(string path)
@@ -116,5 +153,58 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
                 b |= 0x80;
             w.Write(b);
         } while (value != 0);
+    }
+
+    private string? GetSkinNameFromIni(Skin skin)
+    {
+        var skinIni = skin.Files.FirstOrDefault(f => f.Filename.Equals("skin.ini", StringComparison.OrdinalIgnoreCase));
+        if (skinIni == null) return null;
+
+        string skinIniPath = Path.Combine(Path.Combine(lazerPath, "files"), skinIni.Hash[..1], skinIni.Hash[..2], skinIni.Hash);
+        if (!System.IO.File.Exists(skinIniPath)) return null;
+
+        bool inGeneralSection = false;
+        foreach (var line in System.IO.File.ReadLines(skinIniPath))
+        {
+            var trimmed = line.Trim();
+
+            if (trimmed.Equals("[General]"))
+            {
+                inGeneralSection = true;
+                continue;
+            }
+
+            if (trimmed.StartsWith('[') && trimmed.EndsWith(']'))
+            {
+                inGeneralSection = false;
+                continue;
+            }
+
+            if (inGeneralSection && trimmed.StartsWith("Name:"))
+            {
+                return trimmed["Name:".Length..].Trim();
+            }
+        }
+
+        return null;
+    }
+
+    private static string ExtractSkinName(string skinName, string? iniName)
+    {
+        if (iniName == null) return skinName;
+
+        if (skinName == iniName) return iniName;
+
+        // in osu!lazer, if the skin name differs from the ini name, it's formatted as "{iniName} [{skinName}]"
+        // to get the actual skin name used for the folder, we need to extract it here
+        string prefix = $"{iniName} [";
+        if (skinName.StartsWith(prefix) && skinName.EndsWith(']'))
+        {
+            int startIndex = prefix.Length;
+            int length = skinName.Length - startIndex - 1;
+            return skinName.Substring(startIndex, length);
+        }
+
+        return skinName;
     }
 }

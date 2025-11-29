@@ -9,7 +9,7 @@ public class StableDatabaseReader(string path)
 
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
-        using var stream = File.OpenRead(osuDbPath);
+        using var stream = System.IO.File.OpenRead(osuDbPath);
         using var reader = new BinaryReader(stream);
 
         int version = reader.ReadInt32(); // version
@@ -121,7 +121,7 @@ public class StableDatabaseReader(string path)
 
     public IEnumerable<BeatmapCollection> GetCollections()
     {
-        using var stream = File.OpenRead(collectionDbPath);
+        using var stream = System.IO.File.OpenRead(collectionDbPath);
         using var reader = new BinaryReader(stream);
 
         reader.ReadInt32(); // client version

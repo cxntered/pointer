@@ -1,6 +1,6 @@
 namespace pointer.Core.Models;
 
-public record BeatmapFileInfo(
+public record File(
     string Filename,
     string Hash
 );

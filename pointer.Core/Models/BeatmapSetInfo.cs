@@ -9,5 +9,5 @@ public record BeatmapSetInfo(
     string Creator,
     bool Protected,
     List<BeatmapInfo> Beatmaps,
-    List<BeatmapFileInfo> Files
+    List<File> Files
 );
