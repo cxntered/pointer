@@ -20,29 +20,30 @@ public static class PathResolver
 
     public static string GetDefaultStablePath()
     {
+        string basePath;
         if (OperatingSystem.IsWindows())
         {
             // %LocalAppData%\osu!
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
+            basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         }
         else if (OperatingSystem.IsMacOS())
         {
             // /Applications/osu!.app/Contents/Resources/drive_c/Program Files/osu!
-            return Path.Combine(
+            basePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                 "osu!.app",
                 "Contents",
                 "Resources",
                 "drive_c",
-                "Program Files",
-                "osu!"
+                "Program Files"
             );
         }
         else
         {
-            // ~/.local/share/osu-stable
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu-stable");
+            // ~/.local/share/osu-wine/osu!
+            basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu-wine");
         }
+        return Path.Combine(basePath, "osu!");
     }
 
     public static string GetStableSongsPath(string basePath)

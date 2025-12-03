@@ -31,6 +31,19 @@ try
         stableSongsPath
     );
 
+    if (FileLinker.IsHardLinkSupported(lazerPath, stablePath))
+    {
+        Console.WriteLine("Hard linking is supported. Hard linked files will not use extra disk space.");
+    }
+    else
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("Hard linking is not supported (folders may be on different drives or file system doesn't support it).");
+        Console.WriteLine("Files will be copied instead, which will use more disk space.");
+        Console.ResetColor();
+    }
+    Console.WriteLine();
+
     if (args.Contains("--beatmaps"))
     {
         Console.WriteLine("Converting beatmaps...");
