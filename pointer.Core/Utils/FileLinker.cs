@@ -1,4 +1,4 @@
-namespace pointer.Core;
+namespace pointer.Core.Utils;
 
 using System.Runtime.InteropServices;
 

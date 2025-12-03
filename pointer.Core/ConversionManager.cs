@@ -2,6 +2,7 @@ namespace pointer.Core;
 
 using pointer.Core.Models;
 using pointer.Core.Readers;
+using pointer.Core.Utils;
 
 public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerPath, string stablePath, string stableSongsPath)
 {

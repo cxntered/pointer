@@ -1,107 +1,68 @@
 ﻿using pointer.Core;
 using pointer.Core.Readers;
-
-string lazerPath = GetDefaultLazerPath();
-string stablePath = GetDefaultStablePath();
-
-var lazerReader = new LazerDatabaseReader(lazerPath);
-var stableReader = new StableDatabaseReader(stablePath);
-
-var manager = new ConversionManager(
-    lazerReader,
-    stableReader,
-    lazerPath,
-    stablePath,
-    GetStableSongsPath(stablePath)
-);
+using pointer.Core.Utils;
 
 if (args.Length == 0)
 {
     Console.WriteLine("Usage: pointer [--beatmaps] [--collections] [--skins] [--scores]");
-    return;
+    Console.WriteLine();
+    Console.WriteLine("Options:");
+    Console.WriteLine("  --beatmaps     Convert beatmaps from osu!lazer to osu!stable");
+    Console.WriteLine("  --collections  Convert collections from osu!lazer to osu!stable");
+    Console.WriteLine("  --skins        Convert skins from osu!lazer to osu!stable");
+    Console.WriteLine("  --scores       Convert scores from osu!lazer to osu!stable");
+    return 0;
 }
 
-if (args.Contains("--beatmaps"))
+try
 {
-    manager.ConvertBeatmaps();
-}
+    string lazerPath = PathResolver.GetDefaultLazerPath();
+    string stablePath = PathResolver.GetDefaultStablePath();
+    string stableSongsPath = PathResolver.GetStableSongsPath(stablePath);
 
-if (args.Contains("--collections"))
-{
-    manager.ConvertCollections();
-}
+    var lazerReader = new LazerDatabaseReader(lazerPath);
+    var stableReader = new StableDatabaseReader(stablePath);
 
-if (args.Contains("--skins"))
-{
-    manager.ConvertSkins();
-}
+    var manager = new ConversionManager(
+        lazerReader,
+        stableReader,
+        lazerPath,
+        stablePath,
+        stableSongsPath
+    );
 
-if (args.Contains("--scores"))
-{
-    manager.ConvertScores();
-}
-
-static string GetDefaultLazerPath()
-{
-    string basePath;
-    if (OperatingSystem.IsWindows())
+    if (args.Contains("--beatmaps"))
     {
-        // %AppData%\osu
-        basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-    }
-    else
-    {
-        // ~/Library/Application Support/osu or ~/.local/share/osu
-        basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-    }
-    return Path.Combine(basePath, "osu");
-}
-
-static string GetDefaultStablePath()
-{
-    if (OperatingSystem.IsWindows())
-    {
-        // %LocalAppData%\osu!
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
-    }
-    else if (OperatingSystem.IsMacOS())
-    {
-        // ~/Applications/osu!.app/Contents/Resources/drive_c/Program Files/osu!
-        return Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-            "osu!.app",
-            "Contents",
-            "Resources",
-            "drive_c",
-            "Program Files",
-            "osu!"
-        );
-    }
-    else
-    {
-        // ~/.local/share/osu-stable
-        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu-stable");
-    }
-}
-
-static string GetStableSongsPath(string basePath)
-{
-    string configPath = Path.Combine(basePath, "osu!." + Environment.UserName + ".cfg");
-
-    if (File.Exists(configPath))
-    {
-        foreach (var line in File.ReadLines(configPath))
-        {
-            if (line.StartsWith("BeatmapDirectory", StringComparison.OrdinalIgnoreCase))
-            {
-                string? dir = line.Split('=').LastOrDefault()?.Trim();
-                if (Path.IsPathRooted(dir))
-                    return dir;
-                else if (!string.IsNullOrEmpty(dir))
-                    return Path.GetFullPath(Path.Combine(basePath, dir));
-            }
-        }
+        Console.WriteLine("Converting beatmaps...");
+        manager.ConvertBeatmaps();
     }
 
-    return Path.Combine(basePath, "Songs");
+    if (args.Contains("--collections"))
+    {
+        Console.WriteLine("Converting collections...");
+        manager.ConvertCollections();
+    }
+
+    if (args.Contains("--skins"))
+    {
+        Console.WriteLine("Converting skins...");
+        manager.ConvertSkins();
+    }
+
+    if (args.Contains("--scores"))
+    {
+        Console.WriteLine("Converting scores...");
+        manager.ConvertScores();
+    }
+
+    Console.WriteLine("Conversion completed successfully.");
 }
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine($"Fatal error: {ex.Message}");
+    Console.ResetColor();
+    return 1;
+}
+
+return 0;
