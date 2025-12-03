@@ -4,20 +4,27 @@ using pointer.Core.Utils;
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: pointer [--beatmaps] [--collections] [--skins] [--scores]");
+    Console.WriteLine("pointer! - point your osu!lazer files back to stable!");
+    Console.WriteLine();
+    Console.WriteLine("Usage: pointer [options] [lazer-path] [stable-path]");
+    Console.WriteLine();
+    Console.WriteLine("Arguments:");
+    Console.WriteLine("  lazer-path     The path to osu!lazer's install directory, optional");
+    Console.WriteLine("  stable-path    The path to osu!stable's install directory, optional");
     Console.WriteLine();
     Console.WriteLine("Options:");
-    Console.WriteLine("  --beatmaps     Convert beatmaps from osu!lazer to osu!stable");
-    Console.WriteLine("  --collections  Convert collections from osu!lazer to osu!stable");
-    Console.WriteLine("  --skins        Convert skins from osu!lazer to osu!stable");
-    Console.WriteLine("  --scores       Convert scores from osu!lazer to osu!stable");
+    Console.WriteLine("  -b, --beatmaps     Convert beatmaps from osu!lazer to osu!stable");
+    Console.WriteLine("  -c, --collections  Convert collections from osu!lazer to osu!stable");
+    Console.WriteLine("  -s, --skins        Convert skins from osu!lazer to osu!stable");
+    Console.WriteLine("  -r, --scores       Convert scores from osu!lazer to osu!stable");
     return 0;
 }
 
 try
 {
-    string lazerPath = PathResolver.GetDefaultLazerPath();
-    string stablePath = PathResolver.GetDefaultStablePath();
+    var arguments = args.Where(a => !a.StartsWith("-")).ToArray();
+    string lazerPath = arguments.Length > 0 ? arguments[0] : PathResolver.GetDefaultLazerPath();
+    string stablePath = arguments.Length > 1 ? arguments[1] : PathResolver.GetDefaultStablePath();
     string stableSongsPath = PathResolver.GetStableSongsPath(stablePath);
 
     var lazerReader = new LazerDatabaseReader(lazerPath);
@@ -44,25 +51,25 @@ try
     }
     Console.WriteLine();
 
-    if (args.Contains("--beatmaps"))
+    if (args.Contains("-b") || args.Contains("--beatmaps"))
     {
         Console.WriteLine("Converting beatmaps...");
         manager.ConvertBeatmaps();
     }
 
-    if (args.Contains("--collections"))
+    if (args.Contains("-c") || args.Contains("--collections"))
     {
         Console.WriteLine("Converting collections...");
         manager.ConvertCollections();
     }
 
-    if (args.Contains("--skins"))
+    if (args.Contains("-s") || args.Contains("--skins"))
     {
         Console.WriteLine("Converting skins...");
         manager.ConvertSkins();
     }
 
-    if (args.Contains("--scores"))
+    if (args.Contains("-r") || args.Contains("--scores"))
     {
         Console.WriteLine("Converting scores...");
         manager.ConvertScores();
