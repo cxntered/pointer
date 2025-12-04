@@ -18,5 +18,9 @@ also an excuse for me to learn c# :trollface:
 - [legacy database file structure](https://github.com/ppy/osu/wiki/Legacy-database-file-structure)
 - [.osr (file format)](https://osu.ppy.sh/wiki/en/Client/File_formats/osr_%28file_format%29)
 
+## disclaimer
+
+pointer! is in no way affiliated with ppy or osu!
+
 [^1]: falls back to copying files if hard links are not supported
 [^2]: scores will use lazer scoring instead of scorev2, leading to small score differences. as well, scores using lazer only mods will not be converted

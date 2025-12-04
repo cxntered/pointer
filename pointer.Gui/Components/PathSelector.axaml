@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="pointer.Gui.Components.PathSelector"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="42.5"
+    d:DesignWidth="500"
+    mc:Ignorable="d">
+
+    <Border
+        Height="42.5"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Center"
+        Background="#302E38"
+        ClipToBounds="True"
+        CornerRadius="17.5">
+
+        <Grid ColumnDefinitions="170, *">
+            <Border Grid.Column="0" Padding="15,0">
+                <TextBlock
+                    x:Name="LabelText"
+                    VerticalAlignment="Center"
+                    FontFamily="{StaticResource Torus}"
+                    FontSize="15"
+                    FontWeight="Bold"
+                    Foreground="White" />
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Padding="5,0"
+                Background="#24222A"
+                CornerRadius="17.5,0,0,17.5">
+                <Button
+                    x:Name="PathButton"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    FontFamily="{StaticResource Torus}"
+                    FontSize="15"
+                    Foreground="White">
+                    <Button.Styles>
+                        <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+
+                        <Style Selector="Button:pressed">
+                            <Setter Property="RenderTransform" Value="none" />
+                        </Style>
+
+                        <Style Selector="Button:pressed /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                    </Button.Styles>
+                </Button>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,115 @@
+<Window
+    x:Class="pointer.Gui.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="clr-namespace:pointer.Gui.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:pointer.Gui"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="pointer!"
+    Width="550"
+    Height="367"
+    Padding="24,16"
+    d:DesignHeight="367"
+    d:DesignWidth="550"
+    Background="#18171C"
+    CanResize="False"
+    RenderOptions.TextRenderingMode="Antialias"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="12.5">
+        <components:Text
+            Content="pointer!"
+            FontFeatures="salt"
+            FontSize="22"
+            FontWeight="Bold"
+            Foreground="#D5CAF6" />
+
+        <StackPanel Spacing="10">
+            <components:PathSelector Label="osu!lazer location" Path="C:\Users\cxntered\AppData\Roaming\osu" />
+
+            <components:PathSelector Label="osu!stable location" Path="C:\Users\cxntered\AppData\Local\osu!" />
+        </StackPanel>
+
+        <StackPanel Spacing="12.5">
+            <Border Height="22.5" Padding="22,0,20,0">
+                <DockPanel>
+                    <components:Checkbox DockPanel.Dock="Right" IsChecked="True" />
+                    <components:Text
+                        VerticalAlignment="Center"
+                        Content="Beatmaps (727 items)"
+                        FontSize="15"
+                        Foreground="#FFFFFF" />
+                </DockPanel>
+            </Border>
+
+            <Border Height="22.5" Padding="22,0,20,0">
+                <DockPanel>
+                    <components:Checkbox DockPanel.Dock="Right" IsChecked="True" />
+                    <components:Text
+                        VerticalAlignment="Center"
+                        Content="Scores (727 items)"
+                        FontSize="15"
+                        Foreground="#FFFFFF" />
+                </DockPanel>
+            </Border>
+
+            <Border Height="22.5" Padding="22,0,20,0">
+                <DockPanel>
+                    <components:Checkbox DockPanel.Dock="Right" IsChecked="True" />
+                    <components:Text
+                        VerticalAlignment="Center"
+                        Content="Skins (727 items)"
+                        FontSize="15"
+                        Foreground="#FFFFFF" />
+                </DockPanel>
+            </Border>
+
+            <Border Height="22.5" Padding="22,0,20,0">
+                <DockPanel>
+                    <components:Checkbox DockPanel.Dock="Right" IsChecked="True" />
+                    <components:Text
+                        VerticalAlignment="Center"
+                        Content="Collections (727 items)"
+                        FontSize="15"
+                        Foreground="#FFFFFF" />
+                </DockPanel>
+            </Border>
+        </StackPanel>
+
+        <Button
+            Width="300"
+            Height="47.5"
+            HorizontalAlignment="Center"
+            HorizontalContentAlignment="Center"
+            VerticalContentAlignment="Center"
+            Background="#5933CC"
+            Content="point items back to stable!"
+            CornerRadius="100"
+            FontFamily="{StaticResource Torus}"
+            FontSize="15"
+            FontWeight="Bold"
+            Foreground="White">
+            <Button.Styles>
+                <Style Selector="Button /template/ ContentPresenter">
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <BrushTransition
+                                Easing="QuinticEaseOut"
+                                Property="Background"
+                                Duration="0:0:0.3" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+
+                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#6a3df4" />
+                </Style>
+
+                <Style Selector="Button:pressed /template/ ContentPresenter">
+                    <Setter Property="Background" Value="#AC99E5" />
+                </Style>
+            </Button.Styles>
+        </Button>
+    </StackPanel>
+</Window>

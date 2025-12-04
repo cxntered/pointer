@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pointer.Core", "pointer.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pointer.Cli", "pointer.Cli\pointer.Cli.csproj", "{9C2F3FDC-4B49-4679-A075-64ACCB12BFA0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pointer.Gui", "pointer.Gui\pointer.Gui.csproj", "{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{9C2F3FDC-4B49-4679-A075-64ACCB12BFA0}.Release|x64.Build.0 = Release|Any CPU
 		{9C2F3FDC-4B49-4679-A075-64ACCB12BFA0}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C2F3FDC-4B49-4679-A075-64ACCB12BFA0}.Release|x86.Build.0 = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|x64.Build.0 = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Debug|x86.Build.0 = Debug|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|x64.ActiveCfg = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|x64.Build.0 = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|x86.ActiveCfg = Release|Any CPU
+		{0ACCA867-7D20-4F80-8F08-3A59B3D0BE65}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
