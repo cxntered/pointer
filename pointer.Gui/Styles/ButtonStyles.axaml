@@ -1,0 +1,61 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="using:pointer.Gui.Components">
+
+    <Style Selector="components|Button">
+        <Style.Resources>
+            <SolidColorBrush x:Key="ButtonColor">#5933CC</SolidColorBrush>
+            <SolidColorBrush x:Key="ButtonHoverColor">#6a3df4</SolidColorBrush>
+            <SolidColorBrush x:Key="ButtonPressedColor">#AC99E5</SolidColorBrush>
+        </Style.Resources>
+
+        <Setter Property="Width" Value="300" />
+        <Setter Property="Height" Value="47.5" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+        <Setter Property="CornerRadius" Value="100" />
+        <Setter Property="FontFamily" Value="{DynamicResource Torus}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="ToolTip.ShowOnDisabled" Value="True" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition
+                    Easing="QuinticEaseOut"
+                    Property="Opacity"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="components|Button /template/ ContentPresenter">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition
+                    Easing="QuinticEaseOut"
+                    Property="Background"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="components|Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverColor}" />
+    </Style>
+
+    <Style Selector="components|Button:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonPressedColor}" />
+    </Style>
+
+    <Style Selector="components|Button:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <Style Selector="components|Button:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
+    </Style>
+</Styles>

@@ -1,0 +1,91 @@
+<Window
+    x:Class="pointer.Gui.Windows.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="clr-namespace:pointer.Gui.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:pointer.Gui"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:pointer.Gui.ViewModels"
+    Title="pointer!"
+    Width="550"
+    Height="365"
+    Padding="24,16"
+    d:DesignHeight="365"
+    d:DesignWidth="550"
+    x:DataType="vm:MainWindowViewModel"
+    Background="#18171C"
+    CanResize="False"
+    RenderOptions.TextRenderingMode="Antialias"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="12.5">
+        <TextBlock
+            FontFeatures="salt"
+            FontSize="22"
+            FontWeight="Bold"
+            Foreground="#D5CAF6"
+            Text="pointer!" />
+
+        <StackPanel Spacing="10">
+            <components:PathSelector
+                x:Name="LazerPathSelector"
+                IsEnabled="{Binding LazerPathSelector.IsEnabled}"
+                IsValid="{Binding LazerPathSelector.IsValid}"
+                Label="{Binding LazerPathSelector.Label}"
+                Path="{Binding LazerPathSelector.Path, Mode=TwoWay}" />
+
+            <components:PathSelector
+                x:Name="StablePathSelector"
+                IsEnabled="{Binding StablePathSelector.IsEnabled}"
+                IsValid="{Binding StablePathSelector.IsValid}"
+                Label="{Binding StablePathSelector.Label}"
+                Path="{Binding StablePathSelector.Path, Mode=TwoWay}" />
+        </StackPanel>
+
+        <ItemsControl
+            IsEnabled="{Binding AreControlsEnabled}"
+            ItemsSource="{Binding ConversionItems}"
+            Opacity="{Binding ControlsOpacity}">
+            <ItemsControl.Styles>
+                <Style Selector="ItemsControl">
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <DoubleTransition
+                                Easing="QuinticEaseOut"
+                                Property="Opacity"
+                                Duration="0:0:0.3" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+            </ItemsControl.Styles>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Spacing="12.5" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Height="22.5" Padding="22,0,20,0">
+                        <DockPanel>
+                            <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsChecked}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Foreground="#FFFFFF"
+                                Text="{Binding DisplayText}" />
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <components:Button
+            x:Name="ConvertButton"
+            Command="{Binding ConvertButton.ConvertCommand}"
+            Content="{Binding ConvertButton.Text}"
+            IsEnabled="{Binding ConvertButton.IsEnabled}"
+            ToolTip.Tip="{Binding ConvertButton.ToolTip}"
+            Color="#5933CC" />
+    </StackPanel>
+</Window>

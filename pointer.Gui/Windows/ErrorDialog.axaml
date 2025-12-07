@@ -1,0 +1,35 @@
+<Window
+    x:Class="pointer.Gui.Windows.ErrorDialog"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="clr-namespace:pointer.Gui.Components"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="pointer!"
+    Width="400"
+    Height="175"
+    Padding="20,15"
+    Background="#24222A"
+    CanResize="False"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="15">
+        <TextBlock
+            HorizontalAlignment="Center"
+            FontSize="32"
+            Text="Error" />
+
+        <TextBlock
+            x:Name="MessageText"
+            FontSize="15"
+            Foreground="White" />
+
+        <components:Button
+            x:Name="OkButton"
+            Margin="0,5,0,0"
+            Click="OnButtonClick"
+            Content="ok"
+            Color="#593790" />
+    </StackPanel>
+</Window>

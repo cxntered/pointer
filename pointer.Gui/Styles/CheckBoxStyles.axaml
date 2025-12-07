@@ -1,0 +1,110 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:pointer.Gui.Utils">
+
+    <Style Selector="CheckBox">
+        <Style.Resources>
+            <SolidColorBrush x:Key="CheckboxAccentColor">#8C66FF</SolidColorBrush>
+            <SolidColorBrush x:Key="CheckboxHoverColor">#a87af3</SolidColorBrush>
+        </Style.Resources>
+
+        <Setter Property="Width" Value="55" />
+        <Setter Property="Height" Value="15" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Width="55"
+                    Height="15"
+                    Background="Transparent">
+                    <Border
+                        x:Name="InnerBorder"
+                        Width="41.25"
+                        Height="15"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource CheckboxAccentColor}"
+                        BorderThickness="0"
+                        CornerRadius="100">
+                        <Border.Styles>
+                            <Style Selector="Border">
+                                <Setter Property="Transitions">
+                                    <Transitions>
+                                        <ThicknessTransition Property="BorderThickness" Duration="0:0:0" />
+                                        <BrushTransition
+                                            Easing="QuinticEaseOut"
+                                            Property="Background"
+                                            Duration="0:0:0.3" />
+                                    </Transitions>
+                                </Setter>
+                            </Style>
+                        </Border.Styles>
+                    </Border>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="CheckBox:checked /template/ Border#InnerBorder">
+        <Setter Property="Width" Value="55" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="{DynamicResource CheckboxAccentColor}" />
+        <Style.Animations>
+            <Animation FillMode="Forward" Duration="0:0:0.2">
+                <Animation.Easing>
+                    <local:OutElasticHalf />
+                </Animation.Easing>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Width" Value="55" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="CheckBox:unchecked /template/ Border#InnerBorder">
+        <Setter Property="Width" Value="41.25" />
+        <Setter Property="BorderThickness" Value="2.5" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition
+                    Easing="QuinticEaseOut"
+                    Property="BorderBrush"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+        <Style.Animations>
+            <Animation
+                Easing="QuinticEaseOut"
+                FillMode="Forward"
+                Duration="0:0:0.2">
+                <KeyFrame Cue="100%">
+                    <Setter Property="Width" Value="41.25" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="CheckBox:checked /template/ Border#InnerBorder">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition
+                    Easing="QuinticEaseOut"
+                    Property="Background"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#InnerBorder">
+        <Setter Property="Background" Value="{DynamicResource CheckboxHoverColor}" />
+    </Style>
+
+    <Style Selector="CheckBox:unchecked:pointerover /template/ Border#InnerBorder">
+        <Setter Property="BorderBrush" Value="{DynamicResource CheckboxHoverColor}" />
+    </Style>
+
+</Styles>

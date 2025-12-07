@@ -10,6 +10,9 @@ public class StableDatabaseReader(string path)
 
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
+        if (!System.IO.File.Exists(osuDbPath))
+            yield break;
+
         using var stream = System.IO.File.OpenRead(osuDbPath);
         using var reader = new BinaryReader(stream);
 
@@ -122,6 +125,9 @@ public class StableDatabaseReader(string path)
 
     public IEnumerable<BeatmapCollection> GetCollections()
     {
+        if (!System.IO.File.Exists(collectionDbPath))
+            yield break;
+
         using var stream = System.IO.File.OpenRead(collectionDbPath);
         using var reader = new BinaryReader(stream);
 

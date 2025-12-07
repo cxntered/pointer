@@ -1,13 +1,18 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="pointer.Gui.App"
-             RequestedThemeVariant="Dark">
+<Application
+    x:Class="pointer.Gui.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    RequestedThemeVariant="Dark">
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="/Styles/ButtonStyles.axaml" />
+        <StyleInclude Source="/Styles/CheckBoxStyles.axaml" />
+        <StyleInclude Source="/Styles/PathSelectorStyles.axaml" />
+        <StyleInclude Source="/Styles/TextBlockStyles.axaml" />
     </Application.Styles>
 
     <Application.Resources>
-        <FontFamily x:Key="Torus">avares://pointer.Gui/Assets/Fonts/#Torus</FontFamily>
+        <FontFamily x:Key="Torus">/Assets/Fonts/#Torus</FontFamily>
     </Application.Resources>
 </Application>

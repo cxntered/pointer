@@ -1,16 +1,7 @@
 using System;
 using Avalonia.Animation.Easings;
-using Avalonia.Controls;
 
-namespace pointer.Gui;
-
-public partial class MainWindow : Window
-{
-    public MainWindow()
-    {
-        InitializeComponent();
-    }
-}
+namespace pointer.Gui.Utils;
 
 public class OutElasticHalf : Easing
 {

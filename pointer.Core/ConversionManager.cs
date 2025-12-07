@@ -45,81 +45,6 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
     }
 
-    public void ConvertCollections()
-    {
-        var mergedCollections = stable.GetCollections()
-            .Concat(lazer.GetCollections())
-            .GroupBy(c => c.Name)
-            .ToDictionary(
-                g => g.Key,
-                g => new HashSet<string>(g.SelectMany(c => c.Hashes))
-            );
-
-        string collectionDbPath = Path.Combine(stablePath, "collection.db");
-        string backupPath = Path.Combine(stablePath, "collection.db.bak");
-
-        if (System.IO.File.Exists(collectionDbPath))
-        {
-            System.IO.File.Copy(collectionDbPath, backupPath, overwrite: true);
-            Console.WriteLine($"Backed up collection.db to collection.db.bak");
-        }
-
-        using var stream = System.IO.File.Create(collectionDbPath);
-        using var writer = new BinaryWriter(stream);
-
-        writer.Write(STABLE_VERSION);
-        writer.Write(mergedCollections.Count);
-
-        foreach (var (name, hashes) in mergedCollections)
-        {
-            WriteString(writer, name);
-            writer.Write(hashes.Count);
-
-            foreach (var hash in hashes)
-            {
-                WriteString(writer, hash);
-            }
-        }
-
-        Console.WriteLine($"Wrote {mergedCollections.Count} collections to collection.db");
-    }
-
-    public void ConvertSkins()
-    {
-        var stableSkins = Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
-            .Select(dir => Path.GetFileName(dir))
-            .ToHashSet();
-
-        foreach (var skin in lazer.GetSkins())
-        {
-            if (skin.InstantiationInfo != "osu.Game.Skinning.LegacySkin, osu.Game") continue; // skip non-legacy skins
-
-            string? iniName = GetSkinNameFromIni(skin);
-            string skinName = ExtractSkinName(skin.Name, iniName);
-
-            if (stableSkins.Contains(skinName)) continue;
-
-            Console.WriteLine($"Converting Skin: {skinName}");
-
-            string skinDir = Path.Combine(stablePath, "Skins", skinName);
-            Directory.CreateDirectory(skinDir);
-
-            foreach (var file in skin.Files)
-            {
-                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
-                string destFile = Path.Combine(skinDir, file.Filename);
-                try
-                {
-                    FileLinker.LinkOrCopy(sourceFile, destFile);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"  Error linking/copying file '{file.Filename}': {ex.Message}");
-                }
-            }
-        }
-    }
-
     public void ConvertScores()
     {
         var stableScores = stable.GetScores();
@@ -212,6 +137,173 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
 
         Console.WriteLine($"Wrote scores for {stableScores.Count} beatmaps to scores.db ({convertedCount} new scores converted)");
+    }
+
+    public void ConvertSkins()
+    {
+        var stableSkins = Directory.Exists(Path.Combine(stablePath, "Skins"))
+            ? Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
+                .Select(dir => Path.GetFileName(dir))
+                .ToHashSet()
+            : new HashSet<string>();
+
+        foreach (var skin in lazer.GetSkins())
+        {
+            if (skin.InstantiationInfo != "osu.Game.Skinning.LegacySkin, osu.Game") continue; // skip non-legacy skins
+
+            string? iniName = GetSkinNameFromIni(skin);
+            string skinName = ExtractSkinName(skin.Name, iniName);
+
+            if (stableSkins.Contains(skinName)) continue;
+
+            Console.WriteLine($"Converting Skin: {skinName}");
+
+            string skinDir = Path.Combine(stablePath, "Skins", skinName);
+            Directory.CreateDirectory(skinDir);
+
+            foreach (var file in skin.Files)
+            {
+                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
+                string destFile = Path.Combine(skinDir, file.Filename);
+                try
+                {
+                    FileLinker.LinkOrCopy(sourceFile, destFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Error linking/copying file '{file.Filename}': {ex.Message}");
+                }
+            }
+        }
+    }
+
+    public void ConvertCollections()
+    {
+        var mergedCollections = stable.GetCollections()
+            .Concat(lazer.GetCollections())
+            .GroupBy(c => c.Name)
+            .ToDictionary(
+                g => g.Key,
+                g => new HashSet<string>(g.SelectMany(c => c.Hashes))
+            );
+
+        string collectionDbPath = Path.Combine(stablePath, "collection.db");
+        string backupPath = Path.Combine(stablePath, "collection.db.bak");
+
+        if (System.IO.File.Exists(collectionDbPath))
+        {
+            System.IO.File.Copy(collectionDbPath, backupPath, overwrite: true);
+            Console.WriteLine($"Backed up collection.db to collection.db.bak");
+        }
+
+        using var stream = System.IO.File.Create(collectionDbPath);
+        using var writer = new BinaryWriter(stream);
+
+        writer.Write(STABLE_VERSION);
+        writer.Write(mergedCollections.Count);
+
+        foreach (var (name, hashes) in mergedCollections)
+        {
+            WriteString(writer, name);
+            writer.Write(hashes.Count);
+
+            foreach (var hash in hashes)
+            {
+                WriteString(writer, hash);
+            }
+        }
+
+        Console.WriteLine($"Wrote {mergedCollections.Count} collections to collection.db");
+    }
+
+    public int GetBeatmapsToConvertCount()
+    {
+        var stableHashes = stable.GetBeatmaps()
+            .Select(b => b.Hash)
+            .ToHashSet();
+
+        int count = 0;
+        foreach (var beatmapSet in lazer.GetBeatmapSets())
+        {
+            if (beatmapSet.Protected) continue;
+
+            var toConvert = beatmapSet.Beatmaps
+                .Where(b => !stableHashes.Contains(b.Hash))
+                .ToList();
+
+            if (toConvert.Count > 0)
+                count++;
+        }
+
+        return count;
+    }
+
+    public int GetScoresToConvertCount()
+    {
+        var stableScores = stable.GetScores();
+        int count = 0;
+
+        foreach (var score in lazer.GetScores())
+        {
+            if (score.IsLegacyScore) continue;
+
+            var stableScore = ConvertToStableScore(score);
+            if (stableScore == null) continue;
+
+            if (!stableScores.ContainsKey(score.BeatmapMD5Hash))
+            {
+                count++;
+                continue;
+            }
+
+            bool exists = stableScores[score.BeatmapMD5Hash].Any(s =>
+                s.ReplayHash == stableScore.ReplayHash ||
+                (s.OnlineScoreId > 0 && s.OnlineScoreId == stableScore.OnlineScoreId));
+
+            if (!exists)
+                count++;
+        }
+
+        return count;
+    }
+
+    public int GetSkinsToConvertCount()
+    {
+        var stableSkins = Directory.Exists(Path.Combine(stablePath, "Skins"))
+            ? Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
+                .Select(dir => Path.GetFileName(dir))
+                .ToHashSet()
+            : new HashSet<string>();
+
+        int count = 0;
+        foreach (var skin in lazer.GetSkins())
+        {
+            if (skin.InstantiationInfo != "osu.Game.Skinning.LegacySkin, osu.Game") continue;
+
+            string? iniName = GetSkinNameFromIni(skin);
+            string skinName = ExtractSkinName(skin.Name, iniName);
+
+            if (!stableSkins.Contains(skinName))
+                count++;
+        }
+
+        return count;
+    }
+
+    public int GetCollectionsToConvertCount()
+    {
+        var stableCollectionHashes = stable.GetCollections()
+            .SelectMany(c => c.Hashes)
+            .ToHashSet();
+
+        int count = 0;
+        foreach (var collection in lazer.GetCollections())
+        {
+            if (collection.Hashes.Any(hash => !stableCollectionHashes.Contains(hash)))
+                count++;
+        }
+
+        return count;
     }
 
     private static string SanitizePath(string path)

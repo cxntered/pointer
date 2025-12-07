@@ -21,38 +21,26 @@
                 <TextBlock
                     x:Name="LabelText"
                     VerticalAlignment="Center"
-                    FontFamily="{StaticResource Torus}"
                     FontSize="15"
                     FontWeight="Bold"
                     Foreground="White" />
             </Border>
 
             <Border
+                x:Name="PathBorder"
                 Grid.Column="1"
                 Padding="5,0"
                 Background="#24222A"
+                Classes="pathBorder"
                 CornerRadius="17.5,0,0,17.5">
                 <Button
                     x:Name="PathButton"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    FontFamily="{StaticResource Torus}"
+                    Classes="pathButton"
+                    FontFamily="{DynamicResource Torus}"
                     FontSize="15"
-                    Foreground="White">
-                    <Button.Styles>
-                        <Style Selector="Button:pointerover /template/ ContentPresenter">
-                            <Setter Property="Background" Value="Transparent" />
-                        </Style>
-
-                        <Style Selector="Button:pressed">
-                            <Setter Property="RenderTransform" Value="none" />
-                        </Style>
-
-                        <Style Selector="Button:pressed /template/ ContentPresenter">
-                            <Setter Property="Background" Value="Transparent" />
-                        </Style>
-                    </Button.Styles>
-                </Button>
+                    Foreground="White" />
             </Border>
         </Grid>
     </Border>

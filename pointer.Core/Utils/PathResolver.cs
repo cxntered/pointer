@@ -67,4 +67,27 @@ public static class PathResolver
 
         return Path.Combine(basePath, "Songs");
     }
+
+    public static bool IsValidStableInstall(string path)
+    {
+        if (!Directory.Exists(path))
+            return false;
+
+        // check if any config files exist
+        var configFiles = Directory.GetFiles(path, "osu!.*.cfg");
+        if (configFiles.Length > 0)
+            return true;
+
+        // config files may not exist, but songs/skins folder could still be there
+        return Directory.Exists(Path.Combine(path, "Songs")) ||
+               Directory.Exists(Path.Combine(path, "Skins"));
+    }
+
+    public static bool IsValidLazerInstall(string path)
+    {
+        if (!Directory.Exists(path))
+            return false;
+
+        return File.Exists(Path.Combine(path, "client.realm"));
+    }
 }

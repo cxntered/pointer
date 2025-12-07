@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using pointer.Gui.Windows;
 
 namespace pointer.Gui;
 

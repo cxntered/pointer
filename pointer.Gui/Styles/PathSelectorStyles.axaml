@@ -1,0 +1,44 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:components="using:pointer.Gui.Components">
+
+    <Style Selector="components|PathSelector Border.pathBorder">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition
+                    Easing="QuinticEaseOut"
+                    Property="Opacity"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="components|PathSelector Button.pathButton">
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition
+                    Easing="QuinticEaseOut"
+                    Property="Foreground"
+                    Duration="0:0:0" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="components|PathSelector Button.pathButton:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="TextBlock.Foreground" Value="{Binding $parent[Button].Foreground}" />
+    </Style>
+
+    <Style Selector="components|PathSelector Button.pathButton:pressed">
+        <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <Style Selector="components|PathSelector Button.pathButton:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="components|PathSelector Button.pathButton:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+</Styles>
