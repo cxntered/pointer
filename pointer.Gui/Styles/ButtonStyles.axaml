@@ -16,7 +16,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Background" Value="{DynamicResource ButtonColor}" />
-        <Setter Property="CornerRadius" Value="100" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="FontFamily" Value="{DynamicResource Torus}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="Bold" />

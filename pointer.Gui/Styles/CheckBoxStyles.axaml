@@ -28,7 +28,7 @@
                         Background="Transparent"
                         BorderBrush="{DynamicResource CheckboxAccentColor}"
                         BorderThickness="0"
-                        CornerRadius="100">
+                        CornerRadius="7.5">
                         <Border.Styles>
                             <Style Selector="Border">
                                 <Setter Property="Transitions">
