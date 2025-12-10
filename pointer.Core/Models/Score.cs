@@ -16,7 +16,8 @@ public record Score(
     List<Mod> Mods,
     int ID,
     bool IsLegacyScore,
-    List<File> Files
+    List<File> Files,
+    StableScore? StableScore
 );
 
 public record Ruleset(
@@ -29,6 +30,29 @@ public record User(
     string Username,
     int ID,
     string Country
+);
+
+public record StableScore(
+    byte GameMode,
+    int Version,
+    string BeatmapHash,
+    string PlayerName,
+    string ReplayHash,
+    short Count300,
+    short Count100,
+    short Count50,
+    short CountGeki,
+    short CountKatu,
+    short CountMiss,
+    int ReplayScore,
+    short MaxCombo,
+    bool PerfectCombo,
+    BitwiseMods Mods,
+    string HealthGraph,
+    long Timestamp,
+    int CompressedReplayLength,
+    long OnlineScoreId,
+    double? AdditionalModInfo
 );
 
 #pragma warning disable format
@@ -52,10 +76,10 @@ public record Statistics(
     [property: JsonPropertyName("slider_tail_hit")] int SliderTailHit
 );
 
+[Flags]
 public enum BitwiseMods
 {
-    NM  = 0,
-    NF  = 1,
+    NF  = 1 << 0,
     EZ  = 1 << 1,
     TD  = 1 << 2,
     HD  = 1 << 3,
@@ -93,27 +117,3 @@ public record Mod(
     [property: JsonPropertyName("settings")] JsonElement? Settings
 );
 #pragma warning restore format
-
-public record StableScore(
-    byte GameMode,
-    int Version,
-    string BeatmapHash,
-    string PlayerName,
-    string ReplayHash,
-    short Count300,
-    short Count100,
-    short Count50,
-    short CountGeki,
-    short CountKatu,
-    short CountMiss,
-    int ReplayScore,
-    short MaxCombo,
-    bool PerfectCombo,
-    int Mods,
-    string HealthGraph,
-    long Timestamp,
-    int CompressedReplayLength,
-    long OnlineScoreId,
-    double? AdditionalModInfo
-);
-

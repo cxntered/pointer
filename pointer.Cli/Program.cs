@@ -54,25 +54,25 @@ try
     if (args.Contains("-b") || args.Contains("--beatmaps"))
     {
         Console.WriteLine("Converting beatmaps...");
-        manager.ConvertBeatmaps();
+        manager.ConvertBeatmaps(manager.GetBeatmapSetsToConvert());
     }
 
     if (args.Contains("-c") || args.Contains("--collections"))
     {
         Console.WriteLine("Converting collections...");
-        manager.ConvertCollections();
+        manager.ConvertCollections(manager.GetCollectionsToConvert());
     }
 
     if (args.Contains("-s") || args.Contains("--skins"))
     {
         Console.WriteLine("Converting skins...");
-        manager.ConvertSkins();
+        manager.ConvertSkins(manager.GetSkinsToConvert());
     }
 
     if (args.Contains("-r") || args.Contains("--scores"))
     {
         Console.WriteLine("Converting scores...");
-        manager.ConvertScores();
+        manager.ConvertScores(manager.GetScoresToConvert());
     }
 
     Console.WriteLine("Conversion completed successfully.");

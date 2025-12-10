@@ -8,7 +8,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 {
     private const int STABLE_VERSION = 20251128;
 
-    public void ConvertBeatmaps()
+    public IEnumerable<BeatmapSetInfo> GetBeatmapSetsToConvert()
     {
         var stableHashes = stable.GetBeatmaps()
             .Select(b => b.Hash)
@@ -16,7 +16,6 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 
         foreach (var beatmapSet in lazer.GetBeatmapSets())
         {
-            // skip protected beatmap sets (intro sequences)
             if (beatmapSet.Protected) continue;
 
             var toConvert = beatmapSet.Beatmaps
@@ -24,6 +23,14 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
                 .ToList();
             if (toConvert.Count == 0) continue;
 
+            yield return beatmapSet;
+        }
+    }
+
+    public void ConvertBeatmaps(IEnumerable<BeatmapSetInfo> beatmapSets)
+    {
+        foreach (var beatmapSet in beatmapSets)
+        {
             Console.WriteLine($"Converting BeatmapSet: {beatmapSet.Artist} - {beatmapSet.Title} ({beatmapSet.Creator}) [{beatmapSet.OnlineID}]");
 
             string beatmapId = beatmapSet.OnlineID > 0 ? $"{beatmapSet.OnlineID} " : "";
@@ -45,11 +52,10 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
     }
 
-    public void ConvertScores()
+    public IEnumerable<Score> GetScoresToConvert()
     {
-        var stableScores = stable.GetScores();
+        var stableScores = stable.GetScores().ToList();
 
-        int convertedCount = 0;
         foreach (var score in lazer.GetScores())
         {
             if (score.IsLegacyScore) continue;
@@ -57,36 +63,40 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
             var stableScore = ConvertToStableScore(score);
             if (stableScore == null) continue;
 
-            if (!stableScores.ContainsKey(score.BeatmapMD5Hash))
-            {
-                stableScores[score.BeatmapMD5Hash] = new List<StableScore>();
-            }
-
-            bool exists = stableScores[score.BeatmapMD5Hash].Any(s =>
-                s.ReplayHash == stableScore.ReplayHash ||
-                (s.OnlineScoreId > 0 && s.OnlineScoreId == stableScore.OnlineScoreId));
+            bool exists = stableScores.Any(s =>
+                s.BeatmapHash == score.BeatmapMD5Hash &&
+                (s.ReplayHash == stableScore.ReplayHash ||
+                (s.OnlineScoreId > 0 && s.OnlineScoreId == stableScore.OnlineScoreId)));
 
             if (!exists)
-            {
-                stableScores[score.BeatmapMD5Hash].Add(stableScore);
-                convertedCount++;
+                yield return score with { StableScore = stableScore };
+        }
+    }
 
-                // link lazer replays to stable replays folder
-                var file = score.Files.FirstOrDefault()!; // assume first (and only) file is the replay
-                string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
-                string destFile = Path.Combine(stablePath, "Data", "r", $"{score.BeatmapMD5Hash}-{score.Date.ToFileTime()}.osr");
-                try
-                {
-                    FileLinker.LinkOrCopy(sourceFile, destFile);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"  Error linking/copying replay file: {ex.Message}");
-                }
+    public void ConvertScores(IEnumerable<Score> scores)
+    {
+        // link lazer replays to stable replays folder
+        int count = 0;
+        foreach (var score in scores)
+        {
+            count++;
+            var file = score.Files.FirstOrDefault()!; // assume first (and only) file is the replay
+            string sourceFile = Path.Combine(Path.Combine(lazerPath, "files"), file.Hash[..1], file.Hash[..2], file.Hash);
+            string destFile = Path.Combine(stablePath, "Data", "r", $"{score.BeatmapMD5Hash}-{score.Date.ToFileTime()}.osr");
+            try
+            {
+                FileLinker.LinkOrCopy(sourceFile, destFile);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  Error linking/copying replay file: {ex.Message}");
             }
         }
 
         // write merged scores to scores.db
+        var mergedScores = stable.GetScores().Concat(scores.Select(s => s.StableScore!));
+        var groupedScores = mergedScores.GroupBy(s => s.BeatmapHash).ToDictionary(g => g.Key, g => g.ToList());
+
         string scoresDbPath = Path.Combine(stablePath, "scores.db");
         string backupPath = Path.Combine(stablePath, "scores.db.bak");
 
@@ -100,14 +110,14 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         using var writer = new BinaryWriter(stream);
 
         writer.Write(STABLE_VERSION);
-        writer.Write(stableScores.Count);
+        writer.Write(groupedScores.Count);
 
-        foreach (var (beatmapHash, scores) in stableScores)
+        foreach (var (beatmapHash, beatmapScores) in groupedScores)
         {
             WriteString(writer, beatmapHash);
-            writer.Write(scores.Count);
+            writer.Write(beatmapScores.Count);
 
-            foreach (var score in scores.OrderByDescending(s => s.ReplayScore))
+            foreach (var score in beatmapScores.OrderByDescending(s => s.ReplayScore))
             {
                 writer.Write(score.GameMode);
                 writer.Write(score.Version);
@@ -123,7 +133,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
                 writer.Write(score.ReplayScore);
                 writer.Write(score.MaxCombo);
                 writer.Write(score.PerfectCombo);
-                writer.Write(score.Mods);
+                writer.Write((int)score.Mods);
                 WriteString(writer, score.HealthGraph);
                 writer.Write(score.Timestamp);
                 writer.Write(score.CompressedReplayLength);
@@ -136,10 +146,10 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
             }
         }
 
-        Console.WriteLine($"Wrote scores for {stableScores.Count} beatmaps to scores.db ({convertedCount} new scores converted)");
+        Console.WriteLine($"Wrote scores for {groupedScores.Count} beatmaps to scores.db ({count} new scores converted)");
     }
 
-    public void ConvertSkins()
+    public IEnumerable<Skin> GetSkinsToConvert()
     {
         var stableSkins = Directory.Exists(Path.Combine(stablePath, "Skins"))
             ? Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
@@ -154,11 +164,18 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
             string? iniName = GetSkinNameFromIni(skin);
             string skinName = ExtractSkinName(skin.Name, iniName);
 
-            if (stableSkins.Contains(skinName)) continue;
+            if (!stableSkins.Contains(skinName))
+                yield return skin with { Name = skinName, IniName = iniName };
+        }
+    }
 
-            Console.WriteLine($"Converting Skin: {skinName}");
+    public void ConvertSkins(IEnumerable<Skin> skins)
+    {
+        foreach (var skin in skins)
+        {
+            Console.WriteLine($"Converting Skin: {skin.Name}");
 
-            string skinDir = Path.Combine(stablePath, "Skins", skinName);
+            string skinDir = Path.Combine(stablePath, "Skins", skin.Name);
             Directory.CreateDirectory(skinDir);
 
             foreach (var file in skin.Files)
@@ -177,15 +194,29 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         }
     }
 
-    public void ConvertCollections()
+    public IEnumerable<BeatmapCollection> GetCollectionsToConvert()
+    {
+        var stableCollectionHashes = stable.GetCollections()
+            .SelectMany(c => c.Hashes)
+            .ToHashSet();
+
+        foreach (var collection in lazer.GetCollections())
+        {
+            if (collection.Hashes.Any(hash => !stableCollectionHashes.Contains(hash)))
+                yield return collection;
+        }
+    }
+
+    public void ConvertCollections(IEnumerable<BeatmapCollection> collections)
     {
         var mergedCollections = stable.GetCollections()
-            .Concat(lazer.GetCollections())
+            .Concat(collections)
             .GroupBy(c => c.Name)
-            .ToDictionary(
-                g => g.Key,
-                g => new HashSet<string>(g.SelectMany(c => c.Hashes))
-            );
+            .Select(g => new BeatmapCollection(
+                Name: g.Key,
+                Hashes: g.SelectMany(c => c.Hashes).Distinct().ToList()
+            ))
+            .ToList();
 
         string collectionDbPath = Path.Combine(stablePath, "collection.db");
         string backupPath = Path.Combine(stablePath, "collection.db.bak");
@@ -202,108 +233,18 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         writer.Write(STABLE_VERSION);
         writer.Write(mergedCollections.Count);
 
-        foreach (var (name, hashes) in mergedCollections)
+        foreach (var collection in mergedCollections)
         {
-            WriteString(writer, name);
-            writer.Write(hashes.Count);
+            WriteString(writer, collection.Name);
+            writer.Write(collection.Hashes.Count);
 
-            foreach (var hash in hashes)
+            foreach (var hash in collection.Hashes)
             {
                 WriteString(writer, hash);
             }
         }
 
         Console.WriteLine($"Wrote {mergedCollections.Count} collections to collection.db");
-    }
-
-    public int GetBeatmapsToConvertCount()
-    {
-        var stableHashes = stable.GetBeatmaps()
-            .Select(b => b.Hash)
-            .ToHashSet();
-
-        int count = 0;
-        foreach (var beatmapSet in lazer.GetBeatmapSets())
-        {
-            if (beatmapSet.Protected) continue;
-
-            var toConvert = beatmapSet.Beatmaps
-                .Where(b => !stableHashes.Contains(b.Hash))
-                .ToList();
-
-            if (toConvert.Count > 0)
-                count++;
-        }
-
-        return count;
-    }
-
-    public int GetScoresToConvertCount()
-    {
-        var stableScores = stable.GetScores();
-        int count = 0;
-
-        foreach (var score in lazer.GetScores())
-        {
-            if (score.IsLegacyScore) continue;
-
-            var stableScore = ConvertToStableScore(score);
-            if (stableScore == null) continue;
-
-            if (!stableScores.ContainsKey(score.BeatmapMD5Hash))
-            {
-                count++;
-                continue;
-            }
-
-            bool exists = stableScores[score.BeatmapMD5Hash].Any(s =>
-                s.ReplayHash == stableScore.ReplayHash ||
-                (s.OnlineScoreId > 0 && s.OnlineScoreId == stableScore.OnlineScoreId));
-
-            if (!exists)
-                count++;
-        }
-
-        return count;
-    }
-
-    public int GetSkinsToConvertCount()
-    {
-        var stableSkins = Directory.Exists(Path.Combine(stablePath, "Skins"))
-            ? Directory.GetDirectories(Path.Combine(stablePath, "Skins"))
-                .Select(dir => Path.GetFileName(dir))
-                .ToHashSet()
-            : new HashSet<string>();
-
-        int count = 0;
-        foreach (var skin in lazer.GetSkins())
-        {
-            if (skin.InstantiationInfo != "osu.Game.Skinning.LegacySkin, osu.Game") continue;
-
-            string? iniName = GetSkinNameFromIni(skin);
-            string skinName = ExtractSkinName(skin.Name, iniName);
-
-            if (!stableSkins.Contains(skinName))
-                count++;
-        }
-
-        return count;
-    }
-
-    public int GetCollectionsToConvertCount()
-    {
-        var stableCollectionHashes = stable.GetCollections()
-            .SelectMany(c => c.Hashes)
-            .ToHashSet();
-
-        int count = 0;
-        foreach (var collection in lazer.GetCollections())
-        {
-            if (collection.Hashes.Any(hash => !stableCollectionHashes.Contains(hash)))
-                count++;
-        }
-
-        return count;
     }
 
     private static string SanitizePath(string path)
@@ -399,21 +340,21 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 
     private static StableScore? ConvertToStableScore(Score score)
     {
-        int bitwiseMods = 0;
+        BitwiseMods bitwiseMods = 0;
         foreach (Mod mod in score.Mods)
         {
             string enumName = char.IsDigit(mod.Acronym[0]) ? "_" + mod.Acronym : mod.Acronym;
 
-            if (Enum.TryParse(enumName, true, out BitwiseMods bitwiseMod))
+            if (Enum.TryParse(enumName, ignoreCase: true, out BitwiseMods bitwiseMod))
             {
-                bitwiseMods |= (int)bitwiseMod;
+                bitwiseMods |= bitwiseMod;
             }
             else
             {
                 return null; // score has lazer only mods, skip conversion
             }
         }
-        bitwiseMods |= (int)BitwiseMods.SV2; // set all converted scores to scorev2
+        bitwiseMods |= BitwiseMods.SV2; // set all converted scores to scorev2
 
         bool isPerfectCombo = score.Statistics.Miss == 0 &&
                            score.Statistics.LargeTickMiss == 0 &&

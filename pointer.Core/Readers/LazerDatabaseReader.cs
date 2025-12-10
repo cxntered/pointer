@@ -2,7 +2,6 @@ namespace pointer.Core.Readers;
 
 using System.Text.Json;
 using pointer.Core.Models;
-using Pointer.Core.Models;
 using Realms;
 
 public class LazerDatabaseReader(string path)
@@ -84,6 +83,7 @@ public class LazerDatabaseReader(string path)
         {
             yield return new Skin(
                 Name: skin.DynamicApi.Get<string>("Name"),
+                IniName: null,
                 InstantiationInfo: skin.DynamicApi.Get<string>("InstantiationInfo"),
                 Files: [.. skin.DynamicApi.GetList<IRealmObjectBase>("Files")
                 .Select(file => new File(
@@ -138,7 +138,8 @@ public class LazerDatabaseReader(string path)
                 Mods: !string.IsNullOrWhiteSpace(mods) ? JsonSerializer.Deserialize<List<Mod>>(mods)! : [],
                 ID: score.DynamicApi.Get<int>("OnlineID"),
                 IsLegacyScore: score.DynamicApi.Get<bool>("IsLegacyScore"),
-                Files: files
+                Files: files,
+                StableScore: null
             );
         }
     }

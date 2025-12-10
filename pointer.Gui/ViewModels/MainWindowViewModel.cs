@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using pointer.Core.Models;
 using pointer.Gui.Services;
 
 namespace pointer.Gui.ViewModels;
@@ -21,13 +22,13 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial double ControlsOpacity { get; set; }
 
-    public ObservableCollection<ConversionItemViewModel> ConversionItems { get; } = new()
-    {
-        new ConversionItemViewModel("Beatmaps"),
-        new ConversionItemViewModel("Scores"),
-        new ConversionItemViewModel("Skins"),
-        new ConversionItemViewModel("Collections")
-    };
+    public ObservableCollection<ConversionItemViewModel> ConversionItems { get; } =
+    [
+        ConversionItemViewModel.Create(ConversionItemType.Beatmaps),
+        ConversionItemViewModel.Create(ConversionItemType.Scores),
+        ConversionItemViewModel.Create(ConversionItemType.Skins),
+        ConversionItemViewModel.Create(ConversionItemType.Collections)
+    ];
 
     public event EventHandler<string>? ErrorOccurred;
 
@@ -73,10 +74,8 @@ public partial class MainWindowViewModel : ObservableObject
         else
         {
             foreach (var item in ConversionItems)
-            {
-                item.Count = 0;
-                item.DisplayText = item.Name;
-            }
+                item.Clear();
+
             AreControlsEnabled = false;
             ControlsOpacity = 0.5;
             UpdateButtonState();
@@ -87,7 +86,6 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-
             AreControlsEnabled = true;
             ControlsOpacity = 1.0;
 
@@ -96,24 +94,15 @@ public partial class MainWindowViewModel : ObservableObject
 
             ConvertButton.ToolTip = null;
 
-            var counts = await _conversionService.LoadItemCountsAsync(LazerPathSelector.Path, StablePathSelector.Path);
-
-            foreach (var item in ConversionItems)
-            {
-                var count = counts[item.Name];
-                item.Count = count;
-                item.DisplayText = $"{item.Name} ({count} items)";
-            }
+            await _conversionService.LoadItemsToConvertAsync(LazerPathSelector.Path, StablePathSelector.Path, ConversionItems);
 
             UpdateButtonState();
         }
         catch (Exception ex)
         {
             foreach (var item in ConversionItems)
-            {
-                item.Count = 0;
-                item.DisplayText = item.Name;
-            }
+                item.Clear();
+
             UpdateButtonState();
             ErrorOccurred?.Invoke(this, $"Failed to load item counts: {ex.Message}");
         }
@@ -148,11 +137,7 @@ public partial class MainWindowViewModel : ObservableObject
             AreControlsEnabled = false;
             ControlsOpacity = 0.5;
 
-            var itemsToConvert = ConversionItems
-                .Where(item => item.IsChecked)
-                .ToDictionary(item => item.Name, item => true);
-
-            await _conversionService.ConvertItemsAsync(LazerPathSelector.Path, StablePathSelector.Path, itemsToConvert);
+            await _conversionService.ConvertItemsAsync(ConversionItems);
 
             ConvertButton.ShowComplete();
         }

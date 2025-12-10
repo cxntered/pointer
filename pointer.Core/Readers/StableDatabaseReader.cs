@@ -152,23 +152,21 @@ public class StableDatabaseReader(string path)
         }
     }
 
-    public Dictionary<string, List<StableScore>> GetScores()
+    public IEnumerable<StableScore> GetScores()
     {
         if (!System.IO.File.Exists(scoresDbPath))
-            return new Dictionary<string, List<StableScore>>();
+            yield break;
 
         using var stream = System.IO.File.OpenRead(scoresDbPath);
         using var reader = new BinaryReader(stream);
 
         int version = reader.ReadInt32();
         int beatmapCount = reader.ReadInt32();
-        var scores = new Dictionary<string, List<StableScore>>();
 
         for (int i = 0; i < beatmapCount; i++)
         {
             string beatmapHash = ReadString(reader);
             int scoreCount = reader.ReadInt32();
-            var beatmapScores = new List<StableScore>();
 
             for (int j = 0; j < scoreCount; j++)
             {
@@ -186,19 +184,19 @@ public class StableDatabaseReader(string path)
                 int replayScore = reader.ReadInt32();
                 short maxCombo = reader.ReadInt16();
                 bool perfectCombo = reader.ReadBoolean();
-                int mods = reader.ReadInt32();
+                BitwiseMods mods = (BitwiseMods)reader.ReadInt32();
                 string emptyString = ReadString(reader);
                 long timestamp = reader.ReadInt64();
                 int negativeOne = reader.ReadInt32();
                 long onlineScoreId = reader.ReadInt64();
 
                 double? additionalModInfo = null;
-                if ((mods & (int)BitwiseMods.AT) != 0)
+                if ((mods & BitwiseMods.AT) != 0)
                 {
                     additionalModInfo = reader.ReadDouble();
                 }
 
-                var score = new StableScore(
+                yield return new StableScore(
                     gameMode,
                     scoreVersion,
                     beatmapHashRead,
@@ -220,14 +218,8 @@ public class StableDatabaseReader(string path)
                     onlineScoreId,
                     additionalModInfo
                 );
-
-                beatmapScores.Add(score);
             }
-
-            scores[beatmapHash] = beatmapScores;
         }
-
-        return scores;
     }
 
     internal static string ReadString(BinaryReader r)

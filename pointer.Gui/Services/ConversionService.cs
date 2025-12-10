@@ -1,57 +1,40 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using pointer.Core;
 using pointer.Core.Readers;
 using pointer.Core.Utils;
+using pointer.Gui.ViewModels;
 
 namespace pointer.Gui.Services;
 
 public class ConversionService
 {
-    public LazerDatabaseReader? LazerReader { get; private set; }
-    public StableDatabaseReader? StableReader { get; private set; }
+    private ConversionManager? _manager;
 
-    public async Task<Dictionary<string, int>> LoadItemCountsAsync(string lazerPath, string stablePath)
-    {
-        return await Task.Run(() =>
-        {
-            LazerReader = new LazerDatabaseReader(lazerPath);
-            StableReader = new StableDatabaseReader(stablePath);
-
-            var stableSongsPath = PathResolver.GetStableSongsPath(stablePath);
-            var manager = new ConversionManager(LazerReader, StableReader, lazerPath, stablePath, stableSongsPath);
-
-            return new Dictionary<string, int>
-            {
-                ["Beatmaps"] = manager.GetBeatmapsToConvertCount(),
-                ["Scores"] = manager.GetScoresToConvertCount(),
-                ["Skins"] = manager.GetSkinsToConvertCount(),
-                ["Collections"] = manager.GetCollectionsToConvertCount()
-            };
-        });
-    }
-
-    public async Task ConvertItemsAsync(
+    public async Task LoadItemsToConvertAsync(
         string lazerPath,
         string stablePath,
-        Dictionary<string, bool> itemsToConvert)
+        IEnumerable<ConversionItemViewModel> items)
     {
         await Task.Run(() =>
         {
+            var lazerReader = new LazerDatabaseReader(lazerPath);
+            var stableReader = new StableDatabaseReader(stablePath);
+
             var stableSongsPath = PathResolver.GetStableSongsPath(stablePath);
-            var manager = new ConversionManager(LazerReader!, StableReader!, lazerPath, stablePath, stableSongsPath);
+            _manager = new ConversionManager(lazerReader, stableReader, lazerPath, stablePath, stableSongsPath);
 
-            if (itemsToConvert.GetValueOrDefault("Beatmaps"))
-                manager.ConvertBeatmaps();
+            Parallel.ForEach(items, item => item.LoadItems(_manager));
+        });
+    }
 
-            if (itemsToConvert.GetValueOrDefault("Scores"))
-                manager.ConvertScores();
-
-            if (itemsToConvert.GetValueOrDefault("Skins"))
-                manager.ConvertSkins();
-
-            if (itemsToConvert.GetValueOrDefault("Collections"))
-                manager.ConvertCollections();
+    public async Task ConvertItemsAsync(IEnumerable<ConversionItemViewModel> items)
+    {
+        await Task.Run(() =>
+        {
+            var itemsToConvert = items.Where(i => i.IsChecked && i.Count > 0);
+            Parallel.ForEach(itemsToConvert, item => item.ConvertItems(_manager!));
         });
     }
 }
