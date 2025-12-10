@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using pointer.Core.Models;
+using pointer.Core.Utils;
 using pointer.Gui.Services;
 
 namespace pointer.Gui.ViewModels;
@@ -22,6 +22,18 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     public partial double ControlsOpacity { get; set; }
 
+    [ObservableProperty]
+    public partial string HardLinkIcon { get; set; } = "LoaderCircle";
+
+    [ObservableProperty]
+    public partial string HardLinkIconColor { get; set; } = "#FFFFFF";
+
+    [ObservableProperty]
+    public partial string? HardLinkToolTip { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsHardLinkIconVisible { get; set; }
+
     public ObservableCollection<ConversionItemViewModel> ConversionItems { get; } =
     [
         ConversionItemViewModel.Create(ConversionItemType.Beatmaps),
@@ -34,6 +46,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     public MainWindowViewModel()
     {
+        ConvertButton.SetConvertAction(PerformConversionAsync);
+
+        LazerPathSelector.Initialize();
+        StablePathSelector.Initialize();
+        HandlePathChange();
+
         LazerPathSelector.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(PathSelectorViewModel.Path) or nameof(PathSelectorViewModel.IsValid))
@@ -57,18 +75,13 @@ public partial class MainWindowViewModel : ObservableObject
                     UpdateButtonState();
             };
         }
-
-        ConvertButton.SetConvertAction(PerformConversionAsync);
-
-        LazerPathSelector.Initialize();
-        StablePathSelector.Initialize();
-        HandlePathChange();
     }
 
     private void HandlePathChange()
     {
         if (LazerPathSelector.IsValid && StablePathSelector.IsValid)
         {
+            _ = CheckHardLinkSupportAsync();
             _ = LoadItemCountsAsync();
         }
         else
@@ -76,9 +89,42 @@ public partial class MainWindowViewModel : ObservableObject
             foreach (var item in ConversionItems)
                 item.Clear();
 
+            IsHardLinkIconVisible = false;
             AreControlsEnabled = false;
             ControlsOpacity = 0.5;
             UpdateButtonState();
+        }
+    }
+
+    private async Task CheckHardLinkSupportAsync()
+    {
+        IsHardLinkIconVisible = true;
+        HardLinkIcon = "LoaderCircle";
+        HardLinkIconColor = "#FFFFFF";
+        HardLinkToolTip = null;
+
+        var (hardLinkSupported, hardLinkSongsSupported) = await Task.Run(() =>
+        {
+            string lazerFilesPath = System.IO.Path.Combine(LazerPathSelector.Path, "files");
+            string stableSongsPath = PathResolver.GetStableSongsPath(StablePathSelector.Path);
+            bool linkSupported = FileLinker.IsHardLinkSupported(LazerPathSelector.Path, StablePathSelector.Path);
+            bool songsSupported = FileLinker.IsHardLinkSupported(lazerFilesPath, stableSongsPath);
+            return (linkSupported, songsSupported);
+        });
+
+        if (hardLinkSupported && hardLinkSongsSupported)
+        {
+            HardLinkIcon = "FileSymlink";
+            HardLinkToolTip = "Hard linking is supported, so files won't use extra disk space. \nClick to learn more.";
+        }
+        else
+        {
+            string reason = !hardLinkSupported
+                ? "installations may be on different drives or file system doesn't support it"
+                : "songs folders may be on different drives or file system doesn't support it";
+            HardLinkIcon = "Files";
+            HardLinkIconColor = "#FFCC22";
+            HardLinkToolTip = $"Hard linking is not supported ({reason}). \nFiles will be copied and use more disk space. \nClick to learn more.";
         }
     }
 

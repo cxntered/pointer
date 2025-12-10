@@ -38,14 +38,21 @@ try
         stableSongsPath
     );
 
-    if (FileLinker.IsHardLinkSupported(lazerPath, stablePath))
+    bool hardLinkSupported = FileLinker.IsHardLinkSupported(lazerPath, stablePath);
+    bool hardLinkSongsSupported = FileLinker.IsHardLinkSupported(Path.Combine(lazerPath, "files"), stableSongsPath);
+
+    if (hardLinkSupported && hardLinkSongsSupported)
     {
         Console.WriteLine("Hard linking is supported. Hard linked files will not use extra disk space.");
     }
     else
     {
+        string reason = !hardLinkSupported
+            ? "lazer and stable folders may be on different drives or file system doesn't support it"
+            : "songs folders may be on different drives or file system doesn't support it";
+
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("Hard linking is not supported (folders may be on different drives or file system doesn't support it).");
+        Console.WriteLine($"Hard linking is not supported ({reason}).");
         Console.WriteLine("Files will be copied instead, which will use more disk space.");
         Console.ResetColor();
     }

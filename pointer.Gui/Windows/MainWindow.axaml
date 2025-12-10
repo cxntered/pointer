@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:components="clr-namespace:pointer.Gui.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="https://github.com/MahApps/IconPacks.Avalonia"
     xmlns:local="clr-namespace:pointer.Gui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:pointer.Gui.ViewModels"
@@ -20,12 +21,29 @@
     mc:Ignorable="d">
 
     <StackPanel Spacing="12.5">
-        <TextBlock
-            FontFeatures="salt"
-            FontSize="22"
-            FontWeight="Bold"
-            Foreground="#D5CAF6"
-            Text="pointer!" />
+        <DockPanel>
+            <Button
+                x:Name="HardLinkInfoButton"
+                VerticalAlignment="Center"
+                Classes="IconButton"
+                Click="OpenHardLinkInfo"
+                DockPanel.Dock="Right"
+                IsVisible="{Binding IsHardLinkIconVisible}"
+                ToolTip.Tip="{Binding HardLinkToolTip}">
+                <iconPacks:PackIconLucide
+                    Width="18"
+                    Height="18"
+                    Foreground="{Binding HardLinkIconColor}"
+                    Kind="{Binding HardLinkIcon}" />
+            </Button>
+
+            <TextBlock
+                FontFeatures="salt"
+                FontSize="22"
+                FontWeight="Bold"
+                Foreground="#D5CAF6"
+                Text="pointer!" />
+        </DockPanel>
 
         <StackPanel Spacing="10">
             <components:PathSelector

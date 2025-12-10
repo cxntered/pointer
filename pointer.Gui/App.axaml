@@ -8,8 +8,10 @@
         <FluentTheme />
         <StyleInclude Source="/Styles/ButtonStyles.axaml" />
         <StyleInclude Source="/Styles/CheckBoxStyles.axaml" />
+        <StyleInclude Source="/Styles/IconButtonStyles.axaml" />
         <StyleInclude Source="/Styles/PathSelectorStyles.axaml" />
         <StyleInclude Source="/Styles/TextBlockStyles.axaml" />
+        <StyleInclude Source="avares://IconPacks.Avalonia.Lucide/Lucide.axaml" />
     </Application.Styles>
 
     <Application.Resources>
