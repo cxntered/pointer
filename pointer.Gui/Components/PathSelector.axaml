@@ -26,22 +26,17 @@
                     Foreground="White" />
             </Border>
 
-            <Border
-                x:Name="PathBorder"
+            <Button
+                x:Name="PathButton"
                 Grid.Column="1"
-                Padding="5,0"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                VerticalContentAlignment="Center"
                 Background="#24222A"
-                Classes="pathBorder"
-                CornerRadius="17.5,0,0,17.5">
-                <Button
-                    x:Name="PathButton"
-                    VerticalAlignment="Center"
-                    Background="Transparent"
-                    Classes="pathButton"
-                    FontFamily="{DynamicResource Torus}"
-                    FontSize="15"
-                    Foreground="White" />
-            </Border>
+                CornerRadius="17.5"
+                FontFamily="{DynamicResource Torus}"
+                FontSize="16"
+                Foreground="White" />
         </Grid>
     </Border>
 </UserControl>

@@ -8,7 +8,7 @@ namespace pointer.Gui.Components;
 public partial class PathSelector : UserControl
 {
     public static readonly StyledProperty<string> LabelProperty =
-        AvaloniaProperty.Register<PathSelector, string>(nameof(Label), "Label");
+        AvaloniaProperty.Register<PathSelector, string>(nameof(Label), string.Empty);
 
     public static readonly StyledProperty<string> PathProperty =
         AvaloniaProperty.Register<PathSelector, string>(nameof(Path), string.Empty);
@@ -60,7 +60,7 @@ public partial class PathSelector : UserControl
             else if (e.Property == IsEnabledProperty)
             {
                 PathButton.IsEnabled = IsEnabled;
-                PathBorder.Opacity = IsEnabled ? 1.0 : 0.5;
+                PathButton.Opacity = IsEnabled ? 1.0 : 0.5;
             }
         };
 

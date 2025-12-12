@@ -6,7 +6,7 @@
     <Style Selector="components|Button">
         <Style.Resources>
             <SolidColorBrush x:Key="ButtonColor">#5933CC</SolidColorBrush>
-            <SolidColorBrush x:Key="ButtonHoverColor">#6a3df4</SolidColorBrush>
+            <SolidColorBrush x:Key="ButtonHoverColor">#6A3DF4</SolidColorBrush>
             <SolidColorBrush x:Key="ButtonPressedColor">#AC99E5</SolidColorBrush>
         </Style.Resources>
 

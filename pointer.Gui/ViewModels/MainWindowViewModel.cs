@@ -163,11 +163,11 @@ public partial class MainWindowViewModel : ObservableObject
         if (!hasValidPaths)
         {
             if (!LazerPathSelector.IsValid && !StablePathSelector.IsValid)
-                invalidPathMessage = "Please select valid installation paths";
+                invalidPathMessage = "Please select valid installation paths.";
             else if (!LazerPathSelector.IsValid)
-                invalidPathMessage = "Please select a valid osu!lazer path";
+                invalidPathMessage = "Please select a valid osu!lazer path.";
             else
-                invalidPathMessage = "Please select a valid osu!stable path";
+                invalidPathMessage = "Please select a valid osu!stable path.";
         }
 
         ConvertButton.UpdateState(hasValidPaths, hasItemsToConvert, invalidPathMessage);

@@ -40,7 +40,6 @@
             <TextBlock
                 FontFeatures="salt"
                 FontSize="22"
-                FontWeight="Bold"
                 Foreground="#D5CAF6"
                 Text="pointer!" />
         </DockPanel>

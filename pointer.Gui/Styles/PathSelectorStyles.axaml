@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:components="using:pointer.Gui.Components">
 
-    <Style Selector="components|PathSelector Border.pathBorder">
+    <Style Selector="components|PathSelector Button">
         <Setter Property="Transitions">
             <Transitions>
                 <DoubleTransition
@@ -14,31 +14,31 @@
         </Setter>
     </Style>
 
-    <Style Selector="components|PathSelector Button.pathButton">
+    <Style Selector="components|PathSelector Button /template/ ContentPresenter">
         <Setter Property="Transitions">
             <Transitions>
                 <BrushTransition
                     Easing="QuinticEaseOut"
-                    Property="Foreground"
-                    Duration="0:0:0" />
+                    Property="Background"
+                    Duration="0:0:0.1" />
             </Transitions>
         </Setter>
     </Style>
 
-    <Style Selector="components|PathSelector Button.pathButton:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
+    <Style Selector="components|PathSelector Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
         <Setter Property="TextBlock.Foreground" Value="{Binding $parent[Button].Foreground}" />
     </Style>
 
-    <Style Selector="components|PathSelector Button.pathButton:pressed">
+    <Style Selector="components|PathSelector Button:pressed">
         <Setter Property="RenderTransform" Value="none" />
     </Style>
 
-    <Style Selector="components|PathSelector Button.pathButton:pressed /template/ ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
+    <Style Selector="components|PathSelector Button:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="#2A2933" />
     </Style>
 
-    <Style Selector="components|PathSelector Button.pathButton:disabled /template/ ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
+    <Style Selector="components|PathSelector Button:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{Binding $parent[Button].Background}" />
     </Style>
 </Styles>

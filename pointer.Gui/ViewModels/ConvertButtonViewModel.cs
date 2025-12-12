@@ -28,12 +28,12 @@ public partial class ConvertButtonViewModel : ObservableObject
         if (!hasValidPaths)
         {
             IsEnabled = false;
-            ToolTip = invalidPathMessage ?? "Please select valid installation paths";
+            ToolTip = invalidPathMessage ?? "Please select valid installation paths.";
             return;
         }
 
         IsEnabled = hasItemsToConvert;
-        ToolTip = hasItemsToConvert ? null : "No items to convert";
+        ToolTip = hasItemsToConvert ? null : "No items to convert.";
     }
 
     [RelayCommand]
