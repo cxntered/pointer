@@ -28,6 +28,10 @@
                     Easing="QuinticEaseOut"
                     Property="Opacity"
                     Duration="0:0:0.3" />
+                <BrushTransition
+                    Easing="QuinticEaseOut"
+                    Property="Background"
+                    Duration="0:0:0.3" />
             </Transitions>
         </Setter>
     </Style>

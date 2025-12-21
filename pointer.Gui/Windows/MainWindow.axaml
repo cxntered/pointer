@@ -64,18 +64,6 @@
             IsEnabled="{Binding AreControlsEnabled}"
             ItemsSource="{Binding ConversionItems}"
             Opacity="{Binding ControlsOpacity}">
-            <ItemsControl.Styles>
-                <Style Selector="ItemsControl">
-                    <Setter Property="Transitions">
-                        <Transitions>
-                            <DoubleTransition
-                                Easing="QuinticEaseOut"
-                                Property="Opacity"
-                                Duration="0:0:0.3" />
-                        </Transitions>
-                    </Setter>
-                </Style>
-            </ItemsControl.Styles>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Spacing="12.5" />
@@ -97,12 +85,44 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <components:Button
-            x:Name="ConvertButton"
-            Command="{Binding ConvertButton.ConvertCommand}"
-            Content="{Binding ConvertButton.Text}"
-            IsEnabled="{Binding ConvertButton.IsEnabled}"
-            ToolTip.Tip="{Binding ConvertButton.ToolTip}"
-            Color="#5933CC" />
+        <Grid HorizontalAlignment="Center">
+            <components:Button
+                x:Name="ConvertButton"
+                Command="{Binding ConvertButton.ConvertCommand}"
+                Content="point items back to stable!"
+                IsEnabled="{Binding ConvertButton.IsEnabled}"
+                ToolTip.Tip="{Binding ConvertButton.ToolTip}"
+                Color="{Binding ConvertButton.Color}" />
+            <iconPacks:PackIconLucide
+                Width="24"
+                Height="24"
+                Margin="0,0,12,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Foreground="White"
+                IsVisible="{Binding IsProgressVisible}"
+                Kind="{Binding ProgressBarIcon}"
+                Opacity="0.5" />
+            <Border
+                ClipToBounds="True"
+                CornerRadius="10"
+                IsHitTestVisible="False"
+                IsVisible="{Binding IsProgressVisible}"
+                Opacity="0.5">
+                <Grid Classes="ProgressBar">
+                    <Border
+                        Width="{Binding ConversionProgress}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Stretch"
+                        Background="{Binding ProgressBarFill}" />
+
+                    <Border
+                        Width="{Binding ConversionProgressRemaining}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Stretch"
+                        Background="{Binding ProgressBarBackground}" />
+                </Grid>
+            </Border>
+        </Grid>
     </StackPanel>
 </Window>

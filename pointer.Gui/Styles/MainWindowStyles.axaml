@@ -1,0 +1,47 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:iconPacks="https://github.com/MahApps/IconPacks.Avalonia">
+
+    <Style Selector="Grid.ProgressBar Border">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition
+                    Easing="QuinticEaseOut"
+                    Property="Width"
+                    Duration="0:0:0.5" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="ItemsControl">
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition
+                    Easing="QuinticEaseOut"
+                    Property="Opacity"
+                    Duration="0:0:0.3" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <!--  TODO: match osu!lazer loading circle (spinner eases through cardinal angles, spinner container slowly spins)  -->
+    <Style Selector="iconPacks|PackIconLucide[Kind=LoaderCircle]">
+        <Style.Animations>
+            <Animation
+                IterationCount="Infinite"
+                PlaybackDirection="Normal"
+                Duration="0:0:2">
+                <KeyFrame Cue="0%">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+        <Setter Property="RenderTransform">
+            <RotateTransform />
+        </Setter>
+    </Style>
+</Styles>

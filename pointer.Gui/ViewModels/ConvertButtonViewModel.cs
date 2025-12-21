@@ -8,13 +8,13 @@ namespace pointer.Gui.ViewModels;
 public partial class ConvertButtonViewModel : ObservableObject
 {
     [ObservableProperty]
-    public partial string Text { get; set; } = "point items back to stable!";
-
-    [ObservableProperty]
     public partial bool IsEnabled { get; set; }
 
     [ObservableProperty]
     public partial string? ToolTip { get; set; }
+
+    [ObservableProperty]
+    public partial string Color { get; set; } = "#5933CC";
 
     private Func<Task>? _convertAction;
 
@@ -43,18 +43,5 @@ public partial class ConvertButtonViewModel : ObservableObject
         {
             await _convertAction();
         }
-    }
-
-    public void SetConverting(bool isConverting)
-    {
-        IsEnabled = !isConverting;
-        Text = isConverting ? "converting..." : "point items back to stable!";
-        ToolTip = isConverting ? "converting..." : ToolTip;
-    }
-
-    public void ShowComplete()
-    {
-        IsEnabled = false;
-        Text = "conversion complete!";
     }
 }

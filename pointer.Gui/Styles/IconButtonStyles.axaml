@@ -22,23 +22,4 @@
     <Style Selector="Button.IconButton:pressed /template/ ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
     </Style>
-
-    <Style Selector="Button.IconButton /template/ ContentPresenter iconPacks|PackIconLucide[Kind=LoaderCircle]">
-        <Style.Animations>
-            <Animation
-                IterationCount="Infinite"
-                PlaybackDirection="Normal"
-                Duration="0:0:1">
-                <KeyFrame Cue="0%">
-                    <Setter Property="RotateTransform.Angle" Value="0" />
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                    <Setter Property="RotateTransform.Angle" Value="360" />
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-        <Setter Property="RenderTransform">
-            <RotateTransform />
-        </Setter>
-    </Style>
 </Styles>

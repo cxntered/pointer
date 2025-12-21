@@ -11,16 +11,35 @@ namespace pointer.Gui.ViewModels;
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly ConversionService _conversionService = new();
+    private const double CONVERT_BUTTON_WIDTH = 300;
 
     public PathSelectorViewModel LazerPathSelector { get; } = new PathSelectorViewModel("osu!lazer location", isLazer: true);
     public PathSelectorViewModel StablePathSelector { get; } = new PathSelectorViewModel("osu!stable location", isLazer: false);
     public ConvertButtonViewModel ConvertButton { get; } = new ConvertButtonViewModel();
 
     [ObservableProperty]
-    public partial bool AreControlsEnabled { get; set; }
+    public partial double ConversionProgress { get; set; } = 0;
 
     [ObservableProperty]
-    public partial double ControlsOpacity { get; set; }
+    public partial double ConversionProgressRemaining { get; set; } = CONVERT_BUTTON_WIDTH;
+
+    [ObservableProperty]
+    public partial bool IsProgressVisible { get; set; } = false;
+
+    [ObservableProperty]
+    public partial string ProgressBarFill { get; set; } = "#5933CC";
+
+    [ObservableProperty]
+    public partial string ProgressBarBackground { get; set; } = "#2D1A66";
+
+    [ObservableProperty]
+    public partial string ProgressBarIcon { get; set; } = "LoaderCircle";
+
+    [ObservableProperty]
+    public partial bool AreControlsEnabled { get; set; } = true;
+
+    [ObservableProperty]
+    public partial double ControlsOpacity { get; set; } = 100;
 
     [ObservableProperty]
     public partial string HardLinkIcon { get; set; } = "LoaderCircle";
@@ -29,10 +48,10 @@ public partial class MainWindowViewModel : ObservableObject
     public partial string HardLinkIconColor { get; set; } = "#FFFFFF";
 
     [ObservableProperty]
-    public partial string? HardLinkToolTip { get; set; }
+    public partial string? HardLinkToolTip { get; set; } = null;
 
     [ObservableProperty]
-    public partial bool IsHardLinkIconVisible { get; set; }
+    public partial bool IsHardLinkIconVisible { get; set; } = false;
 
     public ObservableCollection<ConversionItemViewModel> ConversionItems { get; } =
     [
@@ -177,15 +196,26 @@ public partial class MainWindowViewModel : ObservableObject
     {
         try
         {
-            ConvertButton.SetConverting(true);
+            ConvertButton.IsEnabled = false;
+            IsProgressVisible = true;
+            ProgressBarFill = "#5933CC";
+            ProgressBarBackground = "#2D1A66";
+            ProgressBarIcon = "LoaderCircle";
             LazerPathSelector.IsEnabled = false;
             StablePathSelector.IsEnabled = false;
             AreControlsEnabled = false;
             ControlsOpacity = 0.5;
 
-            await _conversionService.ConvertItemsAsync(ConversionItems);
+            await _conversionService.ConvertItemsAsync(ConversionItems, new Progress<double>(p =>
+            {
+                ConversionProgress = p / 100 * CONVERT_BUTTON_WIDTH;
+                ConversionProgressRemaining = CONVERT_BUTTON_WIDTH - ConversionProgress;
+            }));
 
-            ConvertButton.ShowComplete();
+            ConvertButton.Color = "#88B300";
+            ProgressBarFill = "#668800";
+            ProgressBarBackground = "#334400";
+            ProgressBarIcon = "Check";
         }
         catch (Exception ex)
         {

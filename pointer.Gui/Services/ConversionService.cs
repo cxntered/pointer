@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using pointer.Core;
 using pointer.Core.Readers;
@@ -29,12 +31,21 @@ public class ConversionService
         });
     }
 
-    public async Task ConvertItemsAsync(IEnumerable<ConversionItemViewModel> items)
+    public async Task ConvertItemsAsync(IEnumerable<ConversionItemViewModel> items, IProgress<double> progress)
     {
+        var itemsToConvert = items.Where(i => i.IsChecked && i.Count > 0).ToList();
+        int total = itemsToConvert.Count;
+        int completed = 0;
+
         await Task.Run(() =>
         {
-            var itemsToConvert = items.Where(i => i.IsChecked && i.Count > 0);
-            Parallel.ForEach(itemsToConvert, item => item.ConvertItems(_manager!));
+            Parallel.ForEach(itemsToConvert, item =>
+            {
+                item.ConvertItems(_manager!);
+                Interlocked.Increment(ref completed);
+                double percentage = (double)completed / total * 100;
+                progress?.Report(percentage);
+            });
         });
     }
 }
