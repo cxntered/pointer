@@ -6,8 +6,6 @@ using pointer.Core.Utils;
 
 public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader stable, string lazerPath, string stablePath, string stableSongsPath)
 {
-    private const int STABLE_VERSION = 20251128;
-
     public IEnumerable<BeatmapSetInfo> GetBeatmapSetsToConvert()
     {
         var stableHashes = stable.GetBeatmaps()
@@ -109,7 +107,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         using var stream = System.IO.File.Create(scoresDbPath);
         using var writer = new BinaryWriter(stream);
 
-        writer.Write(STABLE_VERSION);
+        writer.Write(StableDatabaseReader.ClientVersion);
         writer.Write(groupedScores.Count);
 
         foreach (var (beatmapHash, beatmapScores) in groupedScores)
@@ -230,7 +228,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         using var stream = System.IO.File.Create(collectionDbPath);
         using var writer = new BinaryWriter(stream);
 
-        writer.Write(STABLE_VERSION);
+        writer.Write(StableDatabaseReader.ClientVersion);
         writer.Write(mergedCollections.Count);
 
         foreach (var collection in mergedCollections)
@@ -362,7 +360,7 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
 
         return new StableScore(
             GameMode: (byte)score.Ruleset.ID,
-            Version: STABLE_VERSION,
+            Version: StableDatabaseReader.ClientVersion,
             BeatmapHash: score.BeatmapMD5Hash,
             PlayerName: score.User.Username,
             ReplayHash: score.MD5Hash,

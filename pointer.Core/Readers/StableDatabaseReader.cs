@@ -8,6 +8,8 @@ public class StableDatabaseReader(string path)
     private readonly string collectionDbPath = Path.Combine(path, "collection.db");
     private readonly string scoresDbPath = Path.Combine(path, "scores.db");
 
+    public static int ClientVersion { get; private set; } = 20251128; // default to latest if unset
+
     public IEnumerable<BeatmapInfo> GetBeatmaps()
     {
         if (!System.IO.File.Exists(osuDbPath))
@@ -16,7 +18,7 @@ public class StableDatabaseReader(string path)
         using var stream = System.IO.File.OpenRead(osuDbPath);
         using var reader = new BinaryReader(stream);
 
-        int version = reader.ReadInt32(); // version
+        ClientVersion = reader.ReadInt32();
         reader.ReadInt32(); // folder count
         reader.ReadBoolean(); // account unlocked
         reader.ReadInt64(); // account unlock time
@@ -26,7 +28,7 @@ public class StableDatabaseReader(string path)
 
         for (int i = 0; i < beatmapCount; i++)
         {
-            if (version < 20191106)
+            if (ClientVersion < 20191106)
                 reader.ReadInt32();
 
             string artist = ReadString(reader);
@@ -44,7 +46,7 @@ public class StableDatabaseReader(string path)
             reader.ReadInt16(); // spinner count
             reader.ReadInt64(); // last modified
 
-            if (version < 20140609)
+            if (ClientVersion < 20140609)
             {
                 reader.ReadByte(); // approach rate
                 reader.ReadByte(); // circle size
@@ -61,12 +63,12 @@ public class StableDatabaseReader(string path)
 
             reader.ReadDouble();
 
-            if (version >= 20140609)
+            if (ClientVersion >= 20140609)
             {
-                ReadStarRatings(reader, version); // standard star rating
-                ReadStarRatings(reader, version); // taiko star rating
-                ReadStarRatings(reader, version); // catch star rating
-                ReadStarRatings(reader, version); // mania star rating
+                ReadStarRatings(reader); // standard star rating
+                ReadStarRatings(reader); // taiko star rating
+                ReadStarRatings(reader); // catch star rating
+                ReadStarRatings(reader); // mania star rating
             }
 
             reader.ReadInt32(); // drain time
@@ -106,7 +108,7 @@ public class StableDatabaseReader(string path)
             reader.ReadBoolean(); // disable video
             reader.ReadBoolean(); // visual override
 
-            if (version < 20140609)
+            if (ClientVersion < 20140609)
                 reader.ReadInt16(); // unknown short
 
             reader.ReadInt32(); // last modification time
@@ -246,7 +248,7 @@ public class StableDatabaseReader(string path)
         return result;
     }
 
-    private static Dictionary<int, float> ReadStarRatings(BinaryReader reader, int dbVersion)
+    private static Dictionary<int, float> ReadStarRatings(BinaryReader reader)
     {
         int count = reader.ReadInt32();
         var dict = new Dictionary<int, float>(count);
@@ -258,7 +260,7 @@ public class StableDatabaseReader(string path)
             int mods = reader.ReadInt32();
 
             byte indicator2;
-            if (dbVersion < 20250107)
+            if (ClientVersion < 20250107)
             {
                 indicator2 = reader.ReadByte(); // 0x0d
                 if (indicator2 != 0x0d) throw new Exception("Expected Double indicator.");
