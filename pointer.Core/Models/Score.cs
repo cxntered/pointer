@@ -1,7 +1,9 @@
-namespace pointer.Core.Models;
-
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using pointer.Core.Readers;
+using Realms;
+
+namespace pointer.Core.Models;
 
 public record Score(
     string BeatmapMD5Hash,
@@ -18,7 +20,45 @@ public record Score(
     bool IsLegacyScore,
     List<File> Files,
     StableScore? StableScore
-);
+)
+{
+    public static Score FromDynamic(IRealmObject score, string path)
+    {
+        var beatmapInfo = score.DynamicApi.Get<IRealmObjectBase?>("BeatmapInfo")!;
+        var mods = score.DynamicApi.Get<string>("Mods");
+        var files = score.DynamicApi.GetList<IRealmObjectBase>("Files")
+            .Select(File.FromDynamic)
+            .ToList();
+        var replayFile = files.FirstOrDefault()!;
+        string replayPath = Path.Combine(path, "files", replayFile.Hash[..1], replayFile.Hash[..2], replayFile.Hash);
+        string md5Hash = StableDatabaseReader.ReadReplayMD5Hash(replayPath) ?? score.DynamicApi.Get<string>("Hash");
+
+        return new Score(
+            BeatmapMD5Hash: beatmapInfo.DynamicApi.Get<string>("MD5Hash"),
+            Ruleset: new Ruleset(
+                Name: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<string>("Name"),
+                ID: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<int>("OnlineID"),
+                ShortName: score.DynamicApi.Get<IRealmObjectBase>("Ruleset").DynamicApi.Get<string>("ShortName")
+            ),
+            User: new User(
+                Username: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<string>("Username"),
+                ID: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<int>("OnlineID"),
+                Country: score.DynamicApi.Get<IRealmObjectBase>("User").DynamicApi.Get<string>("CountryCode")
+            ),
+            MD5Hash: md5Hash,
+            Date: score.DynamicApi.Get<DateTimeOffset>("Date"),
+            TotalScore: score.DynamicApi.Get<int>("TotalScore"),
+            MaxCombo: score.DynamicApi.Get<int>("MaxCombo"),
+            Statistics: JsonSerializer.Deserialize<Statistics>(score.DynamicApi.Get<string>("Statistics"))!,
+            MaximumStatistics: JsonSerializer.Deserialize<Statistics>(score.DynamicApi.Get<string>("MaximumStatistics"))!,
+            Mods: !string.IsNullOrWhiteSpace(mods) ? JsonSerializer.Deserialize<List<Mod>>(mods)! : [],
+            ID: score.DynamicApi.Get<int>("OnlineID"),
+            IsLegacyScore: score.DynamicApi.Get<bool>("IsLegacyScore"),
+            Files: files,
+            StableScore: null
+        );
+    }
+}
 
 public record Ruleset(
     string Name,

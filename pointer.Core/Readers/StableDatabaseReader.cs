@@ -224,6 +224,21 @@ public class StableDatabaseReader(string path)
         }
     }
 
+    internal static string? ReadReplayMD5Hash(string replayPath)
+    {
+        if (!System.IO.File.Exists(replayPath))
+            return null;
+
+        using var stream = System.IO.File.OpenRead(replayPath);
+        using var reader = new BinaryReader(stream);
+
+        reader.ReadByte(); // ruleset
+        reader.ReadInt32(); // version
+        ReadString(reader); // beatmap hash
+        ReadString(reader); // player name
+        return ReadString(reader); // replay hash
+    }
+
     internal static string ReadString(BinaryReader r)
     {
         byte indicator = r.ReadByte();
