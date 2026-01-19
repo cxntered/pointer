@@ -88,41 +88,49 @@
         <Grid HorizontalAlignment="Center">
             <components:Button
                 x:Name="ConvertButton"
+                HorizontalContentAlignment="Stretch"
                 Command="{Binding ConvertButton.ConvertCommand}"
-                Content="point items back to stable!"
                 IsEnabled="{Binding ConvertButton.IsEnabled}"
                 ToolTip.Tip="{Binding ConvertButton.ToolTip}"
-                Color="{Binding ConvertButton.Color}" />
-            <iconPacks:PackIconLucide
-                Width="24"
-                Height="24"
-                Margin="0,0,12,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                Foreground="White"
-                IsVisible="{Binding IsProgressVisible}"
-                Kind="{Binding ProgressBarIcon}"
-                Opacity="0.5" />
-            <Border
-                ClipToBounds="True"
-                CornerRadius="10"
-                IsHitTestVisible="False"
-                IsVisible="{Binding IsProgressVisible}"
-                Opacity="0.5">
-                <Grid Classes="ProgressBar">
-                    <Border
-                        Width="{Binding ConversionProgress}"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Stretch"
-                        Background="{Binding ProgressBarFill}" />
-
-                    <Border
-                        Width="{Binding ConversionProgressRemaining}"
+                Color="{Binding ConvertButton.Color}">
+                <Grid Width="300" Height="47.5">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="point items back to stable!" />
+                    <iconPacks:PackIconLucide
+                        Width="24"
+                        Height="24"
+                        Margin="0,0,12,0"
                         HorizontalAlignment="Right"
-                        VerticalAlignment="Stretch"
-                        Background="{Binding ProgressBarBackground}" />
+                        VerticalAlignment="Center"
+                        Foreground="White"
+                        IsHitTestVisible="False"
+                        IsVisible="{Binding IsProgressVisible}"
+                        Kind="{Binding ProgressBarIcon}"
+                        Opacity="0.5" />
+                    <Border
+                        ClipToBounds="True"
+                        CornerRadius="10"
+                        IsHitTestVisible="False"
+                        IsVisible="{Binding IsProgressVisible}"
+                        Opacity="0.5">
+                        <Grid Classes="ProgressBar">
+                            <Border
+                                Width="{Binding ConversionProgress}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Stretch"
+                                Background="{Binding ProgressBarFill}" />
+
+                            <Border
+                                Width="{Binding ConversionProgressRemaining}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Stretch"
+                                Background="{Binding ProgressBarBackground}" />
+                        </Grid>
+                    </Border>
                 </Grid>
-            </Border>
+            </components:Button>
         </Grid>
     </StackPanel>
 </Window>

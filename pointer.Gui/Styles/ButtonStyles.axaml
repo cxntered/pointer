@@ -27,6 +27,12 @@
                     <Panel x:Name="PART_ContentPanel">
                         <Border x:Name="PART_Background" />
 
+                        <Border
+                            x:Name="PART_HoverLayer"
+                            Background="White"
+                            IsHitTestVisible="False"
+                            Opacity="0" />
+
                         <ContentPresenter
                             x:Name="PART_ContentPresenter"
                             Padding="{TemplateBinding Padding}"
@@ -34,6 +40,11 @@
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+                        <Border
+                            x:Name="PART_ClickLayer"
+                            IsHitTestVisible="False"
+                            Opacity="0" />
                     </Panel>
                 </Border>
             </ControlTemplate>
