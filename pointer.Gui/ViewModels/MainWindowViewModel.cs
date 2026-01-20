@@ -212,8 +212,8 @@ public partial class MainWindowViewModel : ObservableObject
                 ConversionProgressRemaining = CONVERT_BUTTON_WIDTH - ConversionProgress;
             }));
 
-            ConvertButton.Color = "#88B300";
-            ProgressBarFill = "#668800";
+            ConvertButton.Color = "#88b300";
+            ProgressBarFill = "#88b300";
             ProgressBarBackground = "#334400";
             ProgressBarIcon = "Check";
         }

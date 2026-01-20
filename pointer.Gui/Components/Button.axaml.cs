@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Threading;
@@ -17,6 +18,7 @@ public partial class Button : Avalonia.Controls.Button
     private Border? _background;
     private Border? _hoverLayer;
     private Border? _clickLayer;
+    private Triangles? _triangles;
     private readonly DispatcherTimer _scaleAnimationTimer;
     private readonly DispatcherTimer _hoverLayerTimer;
     private bool _pointerPressInProgress;
@@ -66,7 +68,7 @@ public partial class Button : Avalonia.Controls.Button
 
         PropertyChanged += (_, e) =>
         {
-            if (e.Property == ColorProperty)
+            if (e.Property == ColorProperty || e.Property == IsEnabledProperty)
             {
                 UpdateButtonColors();
             }
@@ -98,24 +100,42 @@ public partial class Button : Avalonia.Controls.Button
         _background = e.NameScope.Find<Border>("PART_Background");
         _hoverLayer = e.NameScope.Find<Border>("PART_HoverLayer");
         _clickLayer = e.NameScope.Find<Border>("PART_ClickLayer");
-        if (_background is null || _hoverLayer is null || _clickLayer is null)
+        _triangles = e.NameScope.Find<Triangles>("PART_Triangles");
+        if (_background is null || _hoverLayer is null || _clickLayer is null || _triangles is null)
         {
             return;
         }
 
-        _background.Background = new Media.SolidColorBrush(Media.Color.Parse(Color));
+        _background.Background = new Media.SolidColorBrush(Media.Color.Parse(Color)); // optimistically set color to prevent flash
         _background.Transitions = new Transitions
         {
             new BrushTransition
             {
+                Easing = new QuinticEaseOut(),
                 Property = Border.BackgroundProperty,
-                Duration = TimeSpan.FromSeconds(0.3)
+                Duration = TimeSpan.FromSeconds(0.5)
             }
         };
 
         _hoverLayer.Opacity = 0;
         _clickLayer.Opacity = 0.5;
         _clickLayer.Background = new Media.SolidColorBrush(Media.Colors.Transparent);
+
+        _triangles.Transitions = new Transitions
+        {
+            new ColorTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Triangles.GradientStartProperty,
+                Duration = TimeSpan.FromSeconds(0.5)
+            },
+            new ColorTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Triangles.GradientEndProperty,
+                Duration = TimeSpan.FromSeconds(0.5)
+            }
+        };
 
         UpdateButtonColors();
     }
@@ -157,9 +177,31 @@ public partial class Button : Avalonia.Controls.Button
 
     private void UpdateButtonColors()
     {
-        _background?.SetValue(
-            Border.BackgroundProperty,
-            new Media.SolidColorBrush(Media.Color.Parse(Color)));
+        var color = Media.Color.Parse(Color);
+        var dim = IsEnabled ? 1.0 : 0.5;
+        var dimmed = DimColor(color, dim);
+        _background?.SetValue(Border.BackgroundProperty, new Media.SolidColorBrush(dimmed));
+
+        if (_triangles is not null)
+        {
+            _triangles.GradientStart = DimColor(Media.Color.FromRgb(
+                (byte)Math.Min(color.R * 1.2, 255),
+                (byte)Math.Min(color.G * 1.2, 255),
+                (byte)Math.Min(color.B * 1.2, 255)), dim);
+            _triangles.GradientEnd = dimmed;
+        }
+
+        SetValue(TextElement.ForegroundProperty, new Media.SolidColorBrush(DimColor(Media.Colors.White, dim)));
+    }
+
+    private static Media.Color DimColor(Media.Color color, double dim)
+    {
+        if (dim == 1.0)
+            return color;
+
+        var scalar = Math.Pow(dim, 1 / 2.2);
+        byte Dim(byte c) => (byte)Math.Min(c * scalar + 0.5, 255);
+        return Media.Color.FromRgb(Dim(color.R), Dim(color.G), Dim(color.B));
     }
 
     private void CompleteHoverEnter(object? sender, EventArgs e)

@@ -27,9 +27,16 @@
                     <Panel x:Name="PART_ContentPanel">
                         <Border x:Name="PART_Background" />
 
+                        <components:Triangles x:Name="PART_Triangles" IsHitTestVisible="False" />
+
                         <Border
                             x:Name="PART_HoverLayer"
                             Background="White"
+                            IsHitTestVisible="False"
+                            Opacity="0" />
+
+                        <Border
+                            x:Name="PART_ClickLayer"
                             IsHitTestVisible="False"
                             Opacity="0" />
 
@@ -40,18 +47,9 @@
                             VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}" />
-
-                        <Border
-                            x:Name="PART_ClickLayer"
-                            IsHitTestVisible="False"
-                            Opacity="0" />
                     </Panel>
                 </Border>
             </ControlTemplate>
         </Setter>
-    </Style>
-
-    <Style Selector="components|Button:disabled">
-        <Setter Property="Opacity" Value="0.5" />
     </Style>
 </Styles>
