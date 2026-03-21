@@ -73,7 +73,7 @@
                 <DataTemplate>
                     <Border Height="22.5" Padding="22,0,20,0">
                         <DockPanel>
-                            <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsChecked}" />
+                            <components:CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsChecked}" />
                             <TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="15"

@@ -19,6 +19,8 @@ public partial class Button : Avalonia.Controls.Button
     private Border? _hoverLayer;
     private Border? _clickLayer;
     private Triangles? _triangles;
+    private Media.Color _washColor;
+    private Media.Color _flashColor;
     private readonly DispatcherTimer _scaleAnimationTimer;
     private readonly DispatcherTimer _hoverLayerTimer;
     private bool _pointerPressInProgress;
@@ -144,8 +146,13 @@ public partial class Button : Avalonia.Controls.Button
     {
         base.OnPointerEntered(e);
 
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         _hoverLayerTimer.Stop();
-        AnimateHoverLayer(0.2, TimeSpan.FromMilliseconds(40));
+        AnimateHoverLayer(0.6, TimeSpan.FromMilliseconds(40), _flashColor);
         _hoverLayerTimer.Start();
     }
 
@@ -154,7 +161,7 @@ public partial class Button : Avalonia.Controls.Button
         base.OnPointerExited(e);
 
         _hoverLayerTimer.Stop();
-        AnimateHoverLayer(0, TimeSpan.FromMilliseconds(800));
+        AnimateHoverLayer(0, TimeSpan.FromMilliseconds(800), _washColor);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -182,12 +189,24 @@ public partial class Button : Avalonia.Controls.Button
         var dimmed = DimColor(color, dim);
         _background?.SetValue(Border.BackgroundProperty, new Media.SolidColorBrush(dimmed));
 
+        var lightened = Media.Color.FromRgb(
+            (byte)Math.Min(color.R * 1.2, 255),
+            (byte)Math.Min(color.G * 1.2, 255),
+            (byte)Math.Min(color.B * 1.2, 255));
+        _washColor = lightened;
+        _flashColor = Media.Color.FromRgb(
+            (byte)((lightened.R + 255) / 2),
+            (byte)((lightened.G + 255) / 2),
+            (byte)((lightened.B + 255) / 2));
+
+        if (_hoverLayer is not null)
+        {
+            _hoverLayer.Background = new Media.SolidColorBrush(lightened);
+        }
+
         if (_triangles is not null)
         {
-            _triangles.GradientStart = DimColor(Media.Color.FromRgb(
-                (byte)Math.Min(color.R * 1.2, 255),
-                (byte)Math.Min(color.G * 1.2, 255),
-                (byte)Math.Min(color.B * 1.2, 255)), dim);
+            _triangles.GradientStart = DimColor(lightened, dim);
             _triangles.GradientEnd = dimmed;
         }
 
@@ -210,11 +229,11 @@ public partial class Button : Avalonia.Controls.Button
 
         if (IsPointerOver)
         {
-            AnimateHoverLayer(0.1, TimeSpan.FromMilliseconds(800));
+            AnimateHoverLayer(0.75, TimeSpan.FromMilliseconds(800), _washColor);
         }
     }
 
-    private void AnimateHoverLayer(double opacity, TimeSpan duration)
+    private void AnimateHoverLayer(double opacity, TimeSpan duration, Media.Color brush)
     {
         if (_hoverLayer is null)
         {
@@ -228,8 +247,15 @@ public partial class Button : Avalonia.Controls.Button
                 Easing = new QuinticEaseOut(),
                 Property = OpacityProperty,
                 Duration = duration
+            },
+            new BrushTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Border.BackgroundProperty,
+                Duration = duration
             }
         };
+        _hoverLayer.Background = new Media.SolidColorBrush(brush);
         _hoverLayer.Opacity = opacity;
     }
 
