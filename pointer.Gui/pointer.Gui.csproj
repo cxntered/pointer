@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\pointer.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -24,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\pointer.Core\pointer.Core.csproj" />
     <AvaloniaResource Include="Assets\Fonts\**\*.otf" />
+    <AvaloniaResource Include="Assets\*.ico" />
     <AvaloniaResource Include="Styles\*.axaml" />
   </ItemGroup>
 </Project>

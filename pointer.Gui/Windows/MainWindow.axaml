@@ -5,7 +5,6 @@
     xmlns:components="clr-namespace:pointer.Gui.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:iconPacks="https://github.com/MahApps/IconPacks.Avalonia"
-    xmlns:local="clr-namespace:pointer.Gui"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:pointer.Gui.ViewModels"
     Title="pointer!"
@@ -17,6 +16,7 @@
     x:DataType="vm:MainWindowViewModel"
     Background="#18171C"
     CanResize="False"
+    Icon="/Assets/pointer.ico"
     RenderOptions.TextRenderingMode="Antialias"
     mc:Ignorable="d">
 
