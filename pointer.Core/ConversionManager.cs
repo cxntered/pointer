@@ -96,13 +96,10 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
         var groupedScores = mergedScores.GroupBy(s => s.BeatmapHash).ToDictionary(g => g.Key, g => g.ToList());
 
         string scoresDbPath = Path.Combine(stablePath, "scores.db");
-        string backupPath = Path.Combine(stablePath, "scores.db.bak");
+        string? backupPath = FileBackup.Create(scoresDbPath);
 
-        if (System.IO.File.Exists(scoresDbPath))
-        {
-            System.IO.File.Copy(scoresDbPath, backupPath, overwrite: true);
-            Console.WriteLine($"Backed up scores.db to scores.db.bak");
-        }
+        if (backupPath != null)
+            Console.WriteLine($"Backed up {Path.GetFileName(scoresDbPath)} to {Path.GetFileName(backupPath)}");
 
         using var stream = System.IO.File.Create(scoresDbPath);
         using var writer = new BinaryWriter(stream);
@@ -217,13 +214,10 @@ public class ConversionManager(LazerDatabaseReader lazer, StableDatabaseReader s
             .ToList();
 
         string collectionDbPath = Path.Combine(stablePath, "collection.db");
-        string backupPath = Path.Combine(stablePath, "collection.db.bak");
+        string? backupPath = FileBackup.Create(collectionDbPath);
 
-        if (System.IO.File.Exists(collectionDbPath))
-        {
-            System.IO.File.Copy(collectionDbPath, backupPath, overwrite: true);
-            Console.WriteLine($"Backed up collection.db to collection.db.bak");
-        }
+        if (backupPath != null)
+            Console.WriteLine($"Backed up {Path.GetFileName(collectionDbPath)} to {Path.GetFileName(backupPath)}");
 
         using var stream = System.IO.File.Create(collectionDbPath);
         using var writer = new BinaryWriter(stream);
