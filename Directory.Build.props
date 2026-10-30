@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Product>pointer!</Product>
+    <AssemblyTitle>pointer!</AssemblyTitle>
+    <Description>point your osu!lazer files back to stable!</Description>
+    <Authors>cxntered</Authors>
+    <RepositoryUrl>https://github.com/cxntered/pointer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>
