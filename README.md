@@ -5,6 +5,8 @@
 point your osu!lazer files back to stable! <br />
 hard links[^1]/converts beatmaps, collections, skins, and scores[^2]
 
+![showcase](images/showcase.png)
+
 </div>
 
 ## why?
@@ -23,4 +25,5 @@ also an excuse for me to learn c# :trollface:
 pointer! is in no way affiliated with ppy or osu!
 
 [^1]: falls back to copying files if hard links are not supported
+
 [^2]: scores will use lazer scoring instead of scorev2, leading to small score differences. as well, scores using lazer only mods will not be converted
