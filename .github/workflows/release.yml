@@ -1,0 +1,126 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            os: windows-latest
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: osx-arm64
+            os: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Read version from tag
+        id: version
+        shell: bash
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+          RID: ${{ matrix.rid }}
+        run: |
+          set -euo pipefail
+          for app in Cli Gui; do
+            dotnet publish "pointer.$app" \
+              -c Release \
+              -r "$RID" \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
+              -p:EnableCompressionInSingleFile=true \
+              -p:DebugType=none \
+              -p:Version="$VERSION" \
+              -o "out/$app"
+          done
+
+      - name: Package
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+          RID: ${{ matrix.rid }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cp out/Gui/pointer.Gui.exe "artifacts/pointer-$VERSION-$RID.exe"
+            cp out/Cli/pointer.Cli.exe "artifacts/pointer-cli-$VERSION-$RID.exe"
+          else
+            cp out/Gui/pointer.Gui "artifacts/pointer-$VERSION-$RID"
+            cp out/Cli/pointer.Cli "artifacts/pointer-cli-$VERSION-$RID"
+          fi
+
+      - name: Attest
+        uses: actions/attest@v4
+        with:
+          subject-path: artifacts/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.rid }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: artifacts
+        run: sha256sum * > SHA256SUMS.txt
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          state=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null || echo missing)
+
+          if [[ "$state" == "false" ]]; then
+            echo "Release $TAG is already published. Bump the version instead of editing it."
+            exit 1
+          fi
+
+          if [[ "$state" == "true" ]]; then
+            gh release upload "$TAG" artifacts/* --clobber
+          else
+            gh release create "$TAG" artifacts/* \
+              --draft \
+              --title "pointer ${TAG#v}" \
+              --generate-notes \
+              --verify-tag
+          fi
