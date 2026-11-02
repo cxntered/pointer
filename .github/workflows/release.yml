@@ -120,7 +120,7 @@ jobs:
           else
             gh release create "$TAG" artifacts/* \
               --draft \
-              --title "pointer ${TAG#v}" \
+              --title "pointer! ${TAG#v}" \
               --generate-notes \
               --verify-tag
           fi
