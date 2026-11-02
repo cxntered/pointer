@@ -30,11 +30,13 @@
                 DockPanel.Dock="Right"
                 IsVisible="{Binding IsHardLinkIconVisible}"
                 ToolTip.Tip="{Binding HardLinkToolTip}">
-                <iconPacks:PackIconLucide
-                    Width="18"
-                    Height="18"
-                    Foreground="{Binding HardLinkIconColor}"
-                    Kind="{Binding HardLinkIcon}" />
+                <components:LoadingSpinner>
+                    <iconPacks:PackIconLucide
+                        Width="18"
+                        Height="18"
+                        Foreground="{Binding HardLinkIconColor}"
+                        Kind="{Binding HardLinkIcon}" />
+                </components:LoadingSpinner>
             </Button>
 
             <TextBlock
@@ -98,15 +100,17 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Text="point items back to stable!" />
-                    <iconPacks:PackIconLucide
-                        Width="24"
-                        Height="24"
+                    <components:LoadingSpinner
                         Margin="0,0,12,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         IsHitTestVisible="False"
-                        IsVisible="{Binding IsProgressVisible}"
-                        Kind="{Binding ProgressBarIcon}" />
+                        IsVisible="{Binding IsProgressVisible}">
+                        <iconPacks:PackIconLucide
+                            Width="24"
+                            Height="24"
+                            Kind="{Binding ProgressBarIcon}" />
+                    </components:LoadingSpinner>
                     <Border
                         ClipToBounds="True"
                         CornerRadius="10"
