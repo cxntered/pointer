@@ -53,6 +53,20 @@ public class CheckBox : Avalonia.Controls.CheckBox
             return;
         }
 
+        _nub.Transitions = new Transitions
+        {
+            new BrushTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Border.BackgroundProperty
+            },
+            new BrushTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Border.BorderBrushProperty
+            }
+        };
+
         UpdateNubColors();
     }
 
@@ -103,26 +117,16 @@ public class CheckBox : Avalonia.Controls.CheckBox
 
     private void AnimateNubColor(Media.Color color, TimeSpan duration)
     {
-        if (_nub is null)
+        if (_nub?.Transitions is not { } transitions)
         {
             return;
         }
 
-        _nub.Transitions = new Transitions
+        foreach (var transition in transitions)
         {
-            new BrushTransition
-            {
-                Easing = new QuinticEaseOut(),
-                Property = Border.BackgroundProperty,
-                Duration = duration
-            },
-            new BrushTransition
-            {
-                Easing = new QuinticEaseOut(),
-                Property = Border.BorderBrushProperty,
-                Duration = duration
-            }
-        };
+            ((TransitionBase)transition).Duration = duration;
+        }
+
         _nub.Background = new Media.SolidColorBrush(IsChecked == true ? color : Media.Colors.Transparent);
         _nub.BorderBrush = new Media.SolidColorBrush(color);
     }

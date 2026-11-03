@@ -139,6 +139,20 @@ public partial class Button : Avalonia.Controls.Button
             }
         };
 
+        _hoverLayer.Transitions = new Transitions
+        {
+            new DoubleTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = OpacityProperty
+            },
+            new BrushTransition
+            {
+                Easing = new QuinticEaseOut(),
+                Property = Border.BackgroundProperty
+            }
+        };
+
         UpdateButtonColors();
     }
 
@@ -235,26 +249,16 @@ public partial class Button : Avalonia.Controls.Button
 
     private void AnimateHoverLayer(double opacity, TimeSpan duration, Media.Color brush)
     {
-        if (_hoverLayer is null)
+        if (_hoverLayer?.Transitions is not { } transitions)
         {
             return;
         }
 
-        _hoverLayer.Transitions = new Transitions
+        foreach (var transition in transitions)
         {
-            new DoubleTransition
-            {
-                Easing = new QuinticEaseOut(),
-                Property = OpacityProperty,
-                Duration = duration
-            },
-            new BrushTransition
-            {
-                Easing = new QuinticEaseOut(),
-                Property = Border.BackgroundProperty,
-                Duration = duration
-            }
-        };
+            ((TransitionBase)transition).Duration = duration;
+        }
+
         _hoverLayer.Background = new Media.SolidColorBrush(brush);
         _hoverLayer.Opacity = opacity;
     }
