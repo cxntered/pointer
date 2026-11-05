@@ -73,16 +73,16 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Height="22.5" Padding="22,0,20,0">
-                        <DockPanel>
-                            <components:CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsChecked}" />
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="15"
-                                Foreground="#FFFFFF"
-                                Text="{Binding DisplayText}" />
-                        </DockPanel>
-                    </Border>
+                    <components:CheckBox
+                        Height="22.5"
+                        Padding="22,0,20,0"
+                        IsChecked="{Binding IsChecked}">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="15"
+                            Foreground="#FFFFFF"
+                            Text="{Binding DisplayText}" />
+                    </components:CheckBox>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

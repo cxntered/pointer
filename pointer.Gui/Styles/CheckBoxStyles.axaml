@@ -5,26 +5,32 @@
     xmlns:local="using:pointer.Gui.Utils">
 
     <Style Selector="components|CheckBox">
-        <Setter Property="Width" Value="55" />
-        <Setter Property="Height" Value="15" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="MinWidth" Value="0" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Border
-                    Width="55"
-                    Height="15"
-                    Background="Transparent">
-                    <Border
-                        x:Name="PART_Nub"
-                        Width="40"
-                        Height="15"
-                        Background="Transparent"
-                        BorderBrush="Transparent"
-                        BorderThickness="2.5"
-                        CornerRadius="7.5" />
+                <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+                    <DockPanel>
+                        <Border
+                            Width="55"
+                            Height="15"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Right">
+                            <Border
+                                x:Name="PART_Nub"
+                                Width="40"
+                                Height="15"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="2.5"
+                                CornerRadius="7.5" />
+                        </Border>
+                        <ContentPresenter
+                            VerticalAlignment="Center"
+                            Content="{TemplateBinding Content}" />
+                    </DockPanel>
                 </Border>
             </ControlTemplate>
         </Setter>
