@@ -7,6 +7,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Media = Avalonia.Media;
 
@@ -16,6 +17,8 @@ public class CheckBox : Avalonia.Controls.CheckBox
     private Media.Color _washColor;
     private Media.Color _flashColor;
     private readonly DispatcherTimer _hoverSettleTimer;
+    private TopLevel? _topLevel;
+    private bool _isHovered;
 
     public static readonly StyledProperty<string> AccentProperty =
         AvaloniaProperty.Register<CheckBox, string>(nameof(Accent), "#8C66FF");
@@ -70,33 +73,90 @@ public class CheckBox : Avalonia.Controls.CheckBox
         UpdateNubColors();
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        // avalonia doesn't hit-test disabled controls, so we have to track from the top level
+        _topLevel = TopLevel.GetTopLevel(this);
+        _topLevel?.AddHandler(PointerMovedEvent, OnTopLevelPointerMoved, RoutingStrategies.Tunnel, true);
+        if (_topLevel is not null)
+        {
+            _topLevel.PointerExited += OnTopLevelPointerExited;
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _topLevel?.RemoveHandler(PointerMovedEvent, OnTopLevelPointerMoved);
+        if (_topLevel is not null)
+        {
+            _topLevel.PointerExited -= OnTopLevelPointerExited;
+        }
+        _topLevel = null;
+        _isHovered = false;
+
+        base.OnDetachedFromVisualTree(e);
+    }
+
     protected override void OnPointerEntered(PointerEventArgs e)
     {
         base.OnPointerEntered(e);
-
-        if (!IsEnabled)
-        {
-            return;
-        }
-
-        _hoverSettleTimer.Stop();
-        AnimateNubColor(_flashColor, TimeSpan.FromMilliseconds(40));
-        _hoverSettleTimer.Start();
+        SetHovered(true);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+        SetHovered(!IsEffectivelyEnabled && IsPointerWithinBounds(e)); // keep hover when disabled and pointer is still inside
+    }
 
+    private void OnTopLevelPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (IsEffectivelyEnabled)
+        {
+            return;
+        }
+
+        SetHovered(IsPointerWithinBounds(e));
+    }
+
+    private void OnTopLevelPointerExited(object? sender, PointerEventArgs e)
+    {
+        SetHovered(IsPointerWithinBounds(e)); // clear hover only when pointer actually leaves
+    }
+
+    private bool IsPointerWithinBounds(PointerEventArgs e)
+    {
+        return new Rect(Bounds.Size).Contains(e.GetPosition(this));
+    }
+
+    private void SetHovered(bool hovered)
+    {
+        if (_isHovered == hovered)
+        {
+            return;
+        }
+
+        _isHovered = hovered;
         _hoverSettleTimer.Stop();
-        AnimateNubColor(RestingColor(), TimeSpan.FromMilliseconds(800));
+
+        if (hovered)
+        {
+            AnimateNubColor(_flashColor, TimeSpan.FromMilliseconds(40));
+            _hoverSettleTimer.Start();
+        }
+        else
+        {
+            AnimateNubColor(RestingColor(), TimeSpan.FromMilliseconds(800));
+        }
     }
 
     private void CompleteHoverEnter(object? sender, EventArgs e)
     {
         _hoverSettleTimer.Stop();
 
-        if (IsPointerOver)
+        if (_isHovered)
         {
             AnimateNubColor(_washColor, TimeSpan.FromMilliseconds(800));
         }
@@ -133,7 +193,7 @@ public class CheckBox : Avalonia.Controls.CheckBox
 
     private Media.Color RestingColor()
     {
-        return IsPointerOver && IsEnabled ? _washColor : Media.Color.Parse(Accent);
+        return _isHovered ? _washColor : Media.Color.Parse(Accent);
     }
 
     private static Media.Color Lighten(Media.Color color, double amount)

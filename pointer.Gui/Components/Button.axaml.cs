@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using pointer.Gui.Utils;
 using Media = Avalonia.Media;
@@ -23,6 +24,9 @@ public partial class Button : Avalonia.Controls.Button
     private Media.Color _flashColor;
     private readonly DispatcherTimer _scaleAnimationTimer;
     private readonly DispatcherTimer _hoverLayerTimer;
+    private TopLevel? _topLevel;
+    private bool _isHovered;
+    private bool _isDisabledPress;
     private bool _pointerPressInProgress;
     private double _scaleStart;
     private double _scaleTarget;
@@ -70,7 +74,7 @@ public partial class Button : Avalonia.Controls.Button
 
         PropertyChanged += (_, e) =>
         {
-            if (e.Property == ColorProperty || e.Property == IsEnabledProperty)
+            if (e.Property == ColorProperty || e.Property == IsEffectivelyEnabledProperty)
             {
                 UpdateButtonColors();
             }
@@ -156,26 +160,118 @@ public partial class Button : Avalonia.Controls.Button
         UpdateButtonColors();
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        // avalonia doesn't hit-test disabled controls, so we have to track from the top level
+        _topLevel = TopLevel.GetTopLevel(this);
+        _topLevel?.AddHandler(PointerMovedEvent, OnTopLevelPointerMoved, RoutingStrategies.Tunnel, true);
+        _topLevel?.AddHandler(PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel, true);
+        _topLevel?.AddHandler(PointerReleasedEvent, OnTopLevelPointerReleased, RoutingStrategies.Tunnel, true);
+        if (_topLevel is not null)
+        {
+            _topLevel.PointerExited += OnTopLevelPointerExited;
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _topLevel?.RemoveHandler(PointerMovedEvent, OnTopLevelPointerMoved);
+        _topLevel?.RemoveHandler(PointerPressedEvent, OnTopLevelPointerPressed);
+        _topLevel?.RemoveHandler(PointerReleasedEvent, OnTopLevelPointerReleased);
+        if (_topLevel is not null)
+        {
+            _topLevel.PointerExited -= OnTopLevelPointerExited;
+        }
+        _topLevel = null;
+        _isHovered = false;
+        _isDisabledPress = false;
+
+        base.OnDetachedFromVisualTree(e);
+    }
+
     protected override void OnPointerEntered(PointerEventArgs e)
     {
         base.OnPointerEntered(e);
-
-        if (!IsEnabled)
-        {
-            return;
-        }
-
-        _hoverLayerTimer.Stop();
-        AnimateHoverLayer(0.6, TimeSpan.FromMilliseconds(40), _flashColor);
-        _hoverLayerTimer.Start();
+        SetHovered(true);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+        SetHovered(!IsEffectivelyEnabled && IsPointerWithinBounds(e)); // keep hover when disabled and pointer is still inside
+    }
 
+    private void OnTopLevelPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (IsEffectivelyEnabled)
+        {
+            return;
+        }
+
+        SetHovered(IsPointerWithinBounds(e));
+    }
+
+    private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (IsEffectivelyEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed || !IsPointerWithinBounds(e))
+        {
+            return;
+        }
+
+        _isDisabledPress = true;
+        StartScaleAnimation(0.9, TimeSpan.FromSeconds(4), new QuinticEaseOut());
+    }
+
+    private void OnTopLevelPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDisabledPress)
+        {
+            return;
+        }
+
+        _isDisabledPress = false;
+        StartScaleAnimation(1, TimeSpan.FromSeconds(1), new OutElastic());
+    }
+
+    private void OnTopLevelPointerExited(object? sender, PointerEventArgs e)
+    {
+        SetHovered(IsPointerWithinBounds(e)); // clear hover only when pointer actually leaves
+
+        if (_isDisabledPress)
+        {
+            _isDisabledPress = false;
+            StartScaleAnimation(1, TimeSpan.FromSeconds(1), new OutElastic());
+        }
+    }
+
+    private bool IsPointerWithinBounds(PointerEventArgs e)
+    {
+        return new Rect(Bounds.Size).Contains(e.GetPosition(this));
+    }
+
+    private void SetHovered(bool hovered)
+    {
+        if (_isHovered == hovered)
+        {
+            return;
+        }
+
+        _isHovered = hovered;
         _hoverLayerTimer.Stop();
-        AnimateHoverLayer(0, TimeSpan.FromMilliseconds(800), _washColor);
+
+        if (hovered && IsEffectivelyEnabled)
+        {
+            AnimateHoverLayer(0.6, TimeSpan.FromMilliseconds(40), _flashColor);
+            _hoverLayerTimer.Start();
+        }
+        else
+        {
+            // fade only with no flash when button is disabled
+            var duration = IsEffectivelyEnabled ? TimeSpan.FromMilliseconds(800) : TimeSpan.FromMilliseconds(300);
+            AnimateHoverLayer(hovered ? 0.75 : 0, duration, _washColor);
+        }
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -199,7 +295,7 @@ public partial class Button : Avalonia.Controls.Button
     private void UpdateButtonColors()
     {
         var color = Media.Color.Parse(Color);
-        var dim = IsEnabled ? 1.0 : 0.5;
+        var dim = IsEffectivelyEnabled ? 1.0 : 0.5;
         var dimmed = DimColor(color, dim);
         _background?.SetValue(Border.BackgroundProperty, new Media.SolidColorBrush(dimmed));
 
@@ -215,7 +311,7 @@ public partial class Button : Avalonia.Controls.Button
 
         if (_hoverLayer is not null)
         {
-            _hoverLayer.Background = new Media.SolidColorBrush(lightened);
+            _hoverLayer.Background = new Media.SolidColorBrush(DimColor(lightened, dim));
         }
 
         if (_triangles is not null)
@@ -241,7 +337,7 @@ public partial class Button : Avalonia.Controls.Button
     {
         _hoverLayerTimer.Stop();
 
-        if (IsPointerOver)
+        if (_isHovered)
         {
             AnimateHoverLayer(0.75, TimeSpan.FromMilliseconds(800), _washColor);
         }
@@ -259,12 +355,17 @@ public partial class Button : Avalonia.Controls.Button
             ((TransitionBase)transition).Duration = duration;
         }
 
-        _hoverLayer.Background = new Media.SolidColorBrush(brush);
+        _hoverLayer.Background = new Media.SolidColorBrush(DimColor(brush, IsEffectivelyEnabled ? 1.0 : 0.5));
         _hoverLayer.Opacity = opacity;
     }
 
     private void ShowClickColor()
     {
+        if (!IsEffectivelyEnabled)
+        {
+            return;
+        }
+
         if (_clickLayer?.Background is not Media.SolidColorBrush clickBrush)
         {
             return;
