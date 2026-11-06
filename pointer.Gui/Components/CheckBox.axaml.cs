@@ -9,6 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using pointer.Gui.Utils;
 using Media = Avalonia.Media;
 
 public class CheckBox : Avalonia.Controls.CheckBox
@@ -36,6 +37,8 @@ public class CheckBox : Avalonia.Controls.CheckBox
             Interval = TimeSpan.FromMilliseconds(40)
         };
         _hoverSettleTimer.Tick += CompleteHoverEnter;
+
+        Click += (_, _) => SoundEffects.Play(IsChecked == true ? "check-on" : "check-off");
 
         PropertyChanged += (_, e) =>
         {
@@ -143,6 +146,7 @@ public class CheckBox : Avalonia.Controls.CheckBox
 
         if (hovered)
         {
+            SoundEffects.Play("default-hover");
             AnimateNubColor(_flashColor, TimeSpan.FromMilliseconds(40));
             _hoverSettleTimer.Start();
         }

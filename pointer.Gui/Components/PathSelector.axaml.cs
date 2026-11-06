@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using pointer.Gui.Utils;
 
 namespace pointer.Gui.Components;
 
@@ -72,11 +73,15 @@ public partial class PathSelector : UserControl
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel == null) return;
 
+        SoundEffects.Play("overlay-pop-in");
+
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
             Title = $"Select {Label}",
             AllowMultiple = false
         });
+
+        SoundEffects.Play("overlay-pop-out");
 
         if (folders.Count > 0)
         {

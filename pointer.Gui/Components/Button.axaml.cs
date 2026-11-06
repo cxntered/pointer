@@ -70,7 +70,11 @@ public partial class Button : Avalonia.Controls.Button
         };
         _hoverLayerTimer.Tick += CompleteHoverEnter;
 
-        Click += (_, _) => ShowClickColor();
+        Click += (_, _) =>
+        {
+            ShowClickColor();
+            SoundEffects.Play("button-select");
+        };
 
         PropertyChanged += (_, e) =>
         {
@@ -221,6 +225,7 @@ public partial class Button : Avalonia.Controls.Button
         }
 
         _isDisabledPress = true;
+        SoundEffects.Play("default-select-disabled");
         StartScaleAnimation(0.9, TimeSpan.FromSeconds(4), new QuinticEaseOut());
     }
 
@@ -263,6 +268,7 @@ public partial class Button : Avalonia.Controls.Button
 
         if (hovered && IsEffectivelyEnabled)
         {
+            SoundEffects.Play("button-hover");
             AnimateHoverLayer(0.6, TimeSpan.FromMilliseconds(40), _flashColor);
             _hoverLayerTimer.Start();
         }

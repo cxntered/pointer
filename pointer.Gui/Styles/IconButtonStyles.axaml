@@ -1,8 +1,4 @@
-<Styles
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:iconPacks="https://github.com/MahApps/IconPacks.Avalonia">
-
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Style Selector="Button.IconButton">
         <Setter Property="Padding" Value="0" />
         <Setter Property="Background" Value="Transparent" />
